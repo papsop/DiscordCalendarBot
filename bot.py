@@ -4,7 +4,7 @@ import discord
 from BotClass import Bot
 from commands.Ping import Ping
 from commands.Setup import Setup
-from commands.Calendar import AddCalendar
+from commands.Calendar import Calendar
 
 # Create instance of the bot
 print("=================================")
@@ -12,13 +12,13 @@ print("Initializing Bot and Managers...")
 bot = Bot()
 print("=================================")
 
-# ====================
+# =====================
 #   Register commands
-# ======s==============
+# =====================
 print("Successfully registered commands:")
 bot._commandsManager.register_command( Ping )
 bot._commandsManager.register_command( Setup )
-bot._commandsManager.register_command( AddCalendar )
+bot._commandsManager.register_command( Calendar )
 print("=================================")
 
 # ==================

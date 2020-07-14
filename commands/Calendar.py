@@ -2,34 +2,56 @@ import discord
 from .CommandBase import CommandBase
 import pytz
 
-class AddCalendar(CommandBase):
+class Calendar(CommandBase):
+    """
+        Class that contains all commands regarding Calendars
+        - add, remove, update
+    """
 
     _commandsManager = None
     _bot = None
 
     def __init__(self, commandsManager):
         """
-            [prefix]addcalendar [timezone] [schedule-channel-id]
+            [prefix]calendar [sub-command] [timezone] [teamup-calendar-key] [calendar-channel-id]
         """
         self._commandsManager = commandsManager
-        self.activation_string = "addcalendar"
+        self.activation_string = "calendar"
+        self.sub_commands = "add"
         self._bot = self._commandsManager._bot
     
     async def action(self, message):
         args = message.content.split(' ')
-        create_channel = False
-        schedule_channel = None
-
-        if len(args) != 2 and len(args) != 3:
+        if len(args) != 4 and len(args) != 5:
             return {
                 "embed": {
                     "type": "ERROR",
                     "title": "An error has occured",
-                    "description": "This command requires 2 or 3 parameters, use `[prefix]help addcalendar` for command usage."
+                    "description": "This command requires 4 or 5 parameters, use `[prefix]help calendar` for command usage."
                 }
             }
         
-        if not args[1] in pytz.all_timezones:
+        if args[1] == "add":
+            return await self.add_calendar(message, args)
+
+        return {
+            "embed": {
+                "type": "ERROR",
+                "title": "An error has occured",
+                "description": "Unknown sub-command `{0}`!\nUse `[prefix]help calendar` for command usage.".format(args[1])
+            }
+        }
+
+    # ==================
+    #    ADD CALENDAR
+    # ==================
+    async def add_calendar(self, message, args):
+        calendar_timezone = args[2]
+        create_channel = False
+        calendar_channel = None
+        calendar_id = -1
+
+        if not calendar_timezone in pytz.all_timezones:
             return {
                 "embed": {
                     "type": "ERROR",
@@ -37,22 +59,58 @@ class AddCalendar(CommandBase):
                     "description": "Unknown timezone provided, please use [THIS LIST](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) as a reference. Example: Europe/Bratislava"
                 }
             }
+
+        #
+        # Checks before creating a calendar
+        #
+        server = self._bot._cacheManager.get_server_cache(message.guild.id)
+        if server == None:
+            return {
+                "embed": {
+                    "type": "ERROR",
+                    "title": "An error has occured",
+                    "description": "This server isn't setup, use command `!setup` first. For more information type `!help setup`"
+                }
+            }
+        if server["calendars_num"] >= server["calendars_max"]:
+            return {
+                "embed": {
+                    "type": "ERROR",
+                    "title": "An error has occured",
+                    "description": "Maximum number of calendars reached ({0[calendars_num]}/{0[calendars_max]}), delete a calendar or contact 'BlueX#6898' for additional space.".format(server)
+                }
+            }
+
+        # checking if the teamup calendar key is functional
+        calendar_key = args[3]
+        calendar_configuration = self._bot._teamupManager.get_calendar_config(calendar_key)
+        if calendar_configuration['status_code'] != 200:
+            return {
+                "embed": {
+                    "type": "ERROR",
+                    "title": "An error has occured",
+                    "description": "Given calendar key (**{0}**) is incorrect (Bot is unable to establish connection to the calendar).".format(calendar_key)
+                }
+            }
+
+        #data = self._bot._teamupManager.get_calendar_events(calendar_key, {})
+
         #
         # Channel stuff
         #
-
-        if len(args) == 2:
+        if len(args) == 4:
             create_channel = True
 
         if create_channel:
             overwrites = {
                 message.guild.default_role: discord.PermissionOverwrite(read_messages=False),
-                message.guild.me: discord.PermissionOverwrite(read_messages=True)
+                message.guild.me: discord.PermissionOverwrite(send_messages=True)
             }
-            schedule_channel = await message.guild.create_text_channel('schedule', overwrites=overwrites)            
+
+            calendar_channel = await message.guild.create_text_channel('calendar-channel')
 
         if not create_channel:
-            if not args[2].isdigit():
+            if not args[4].isdigit():
                 return {
                     "embed": {
                         "type": "ERROR",
@@ -61,16 +119,16 @@ class AddCalendar(CommandBase):
                     }
                 }
             try:
-                schedule_channel = message.guild.get_channel(int(args[2]))
+                calendar_channel = message.guild.get_channel(int(args[4]))
             except Exception as e:
-                schedule_channel = None # same message as if channel doesn't exist
+                calendar_channel = None # same message as if channel doesn't exist
             
-        if schedule_channel == None:
+        if calendar_channel == None:
             return {
                 "embed": {
                     "type": "ERROR",
                     "title": "An error has occured",
-                    "description": "Bot can't find provided schedule channel. Maybe you forgot to give it permission to see the channel or you provided wrong ID?"
+                    "description": "Bot can't find provided calendar channel. Maybe you forgot to give it permission to see the channel or you provided wrong ID?"
                 }
             }
         
@@ -78,17 +136,17 @@ class AddCalendar(CommandBase):
         # Message/Calendar stuff
         #
         try:
-            calendar_message = await self._bot.send_message(schedule_channel, "Calendar is being created...")
+            calendar_message = await self._bot.send_message(calendar_channel, "Calendar is being created...")
         except Exception as e:
             return {
                 "embed": {
                     "type": "ERROR",
                     "title": "An error has occured",
-                    "description": "Bot can't write a new message into provided schedule channel (it can see it tho). Maybe you forgot to give it permissions to write?",
+                    "description": "Bot can't write a new message into provided calendar channel (it can see it tho). Maybe you forgot to give it permission to write?",
                     "fields": [
                         {
                             "name": "Exception",
-                            "value": e.args[0]
+                            "value": str(e)
                         }
                     ]
                 }
@@ -99,30 +157,47 @@ class AddCalendar(CommandBase):
         #
         calendar_data = {
             "server_id": message.guild.id,
-            "timezone": args[1],
-            "channel_id": schedule_channel.id,
+            "timezone": calendar_timezone,
+            "channel_id": calendar_channel.id,
             "message_id": calendar_message.id
         }
-
-        self._bot._databaseManager.insert_calendar(calendar_data)
+        try:
+            calendar_id = self._bot._databaseManager.insert_calendar(calendar_data)
+        except Exception as e:
+            return self._bot.exception_msg(str(e))
         
+        # update number of calendars for this server
+        # self._bot._cacheManager.update_server_num(message.guild.id, server["calendars_num"] + 1)
+
+        # ================================
+        #    Update message to calendar
+        # ================================
+        try:
+            await self._bot._calendarsManager.update_calendar_embed(message.guild.id, calendar_id)
+        except Exception as e:
+            return self._bot.exception_msg(str(e))
+
+        # return Success embed with some calendar info
         return {
                 "embed": {
                     "type": "SUCCESS",
                     "title": "Calendar created",
-                    "description": "Calendar has been successfully created.",
+                    "description": "Calendar with **ID {0}** has been successfully created.".format(calendar_id),
                     "fields": [
                         {
                             "name": "Channel",
-                            "value": "<#{0}>".format(schedule_channel.id)
+                            "value": "<#{0}>".format(calendar_channel.id),
+                            "inline": False
                         },
                         {
                             "name": "Message ID (Calendar)",
-                            "value": message.id
+                            "value": message.id,
+                            "inline": False
                         },
                         {
                             "name": "Timezone",
-                            "value": args[1]
+                            "value": calendar_timezone,
+                            "inline": False
                         }
                     ]
                 }

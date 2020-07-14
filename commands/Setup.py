@@ -3,6 +3,10 @@ from .CommandBase import CommandBase
 import sqlite3
 
 class Setup(CommandBase):
+    """
+        Class that contains all commands regarding Setup
+        - new, update
+    """
 
     _commandsManager = None
     _bot = None
@@ -10,6 +14,7 @@ class Setup(CommandBase):
     def __init__(self, commandsManager):
         self._commandsManager = commandsManager
         self.activation_string = "setup"
+        self.sub_commands = "add, update"
         self._bot = self._commandsManager._bot
     
     async def action(self, message):
@@ -37,13 +42,8 @@ class Setup(CommandBase):
         # TODO: Change prefix
         server_info = self._bot._cacheManager.get_server_cache(message.guild.id)
         if server_info != None:
-            return {
-                "embed": {
-                    "type": "ERROR",
-                    "title": "An error has occured",
-                    "description": "This server has already been setup."
-                }
-            }
+            return "not supported yet"
+            #return await self.update_server(message, args)
 
         # create obj for database
         server_data = { 
@@ -62,10 +62,10 @@ class Setup(CommandBase):
                 }
             }
         except Exception as e:
-            return {
-                "embed": {
-                    "type": "ERROR",
-                    "title": "An error has occured",
-                    "description": e.args[0]
-                }
-            }
+            return self._bot.exception_msg(e.args[0])
+
+    async def update_server(self, message, args):
+        """
+            Called from Setup.Action() if given server is already registered and bot should update data
+        """
+        pass

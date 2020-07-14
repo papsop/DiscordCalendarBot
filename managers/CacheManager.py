@@ -24,8 +24,12 @@ class CacheManager:
         self._servers_cache = {}
         servers = self._databaseManager.get_servers()
         for server in servers:
-            self._servers_cache[server[0]] = {
-                "prefix": server[1]
+            self._servers_cache[server["server_id"]] = {
+                "prefix": server["prefix"],
+                "admin_id": server["admin_id"],
+                "is_admin_user": server["is_admin_user"],
+                "calendars_num": server["calendars_num"],
+                "calendars_max": server["calendars_max"]
             }
         print("  ✓ servers_cache reloaded")
 
@@ -39,6 +43,26 @@ class CacheManager:
     def insert_server(self, server_data):
         try:
             self._databaseManager.insert_server(server_data)
+        except:
+            raise
+        self.reload_servers_cache()
+
+    def update_server(self, server_data):
+        print("UPDATING SERVER LOOL")
+        print(server_data)
+        print("jk")
+
+    def update_calendar_num(self, server_id, new_num):
+        try:
+            server = self._servers_cache[server_id]
+            new_server_data = {
+                "prefix": server["prefix"],
+                "admin_id": server["admin_id"],
+                "is_admin_user": server["is_admin_user"],
+                "calendars_num": new_num,
+                "calendars_max": server["calendars_max"]
+            }
+            self.update_server(new_server_data)
         except:
             raise
         self.reload_servers_cache()

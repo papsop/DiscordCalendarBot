@@ -3,7 +3,7 @@ class CommandsManager:
     _bot = None
     _cacheManager = None
     _commands = []
-    _prefix = '!'
+    _defaultPrefix = '!'
 
     def __init__(self, bot):
         self._bot = bot
@@ -13,7 +13,7 @@ class CommandsManager:
     def register_command(self, commandClass):
         command = commandClass(self)
         self._commands.append(command)
-        print("  ✓ {0.activation_string}".format(command))
+        print("  ✓ {0.activation_string} [{0.sub_commands}]".format(command))
 
     async def process_message(self, message):
         # ignore messages without the prefix
@@ -21,7 +21,7 @@ class CommandsManager:
         if server_data != None:
             prefix = server_data["prefix"]
         else:
-            prefix = "!"
+            prefix = self._defaultPrefix
 
         if message.content[:len(prefix)] != prefix:
             return
@@ -35,8 +35,3 @@ class CommandsManager:
                 else:
                     await self._bot.send_message(message.channel, result)
                 break
-
-#    def list_commands(self, server_id):
-#        for command in self._commands:
-#            prefix = self._cacheManager.get_prefix_by_server_id(server_id)
-#            print(prefix + command.activation_string)

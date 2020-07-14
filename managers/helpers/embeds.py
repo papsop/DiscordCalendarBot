@@ -25,12 +25,16 @@ class Embeds(object):
             embed.color = Embeds.color_info
 
         embed.title = data["title"]
-        embed.description = data["description"]
+        if "description" in data:
+            embed.description = data["description"]
         
         if "fields" in data:
             if len(data["fields"]) > 0:
                 for field in data["fields"]:
-                    embed.add_field(name=field["name"], value=field["value"])
+                    if "inline" in field:
+                        embed.add_field(name=field["name"], value=field["value"], inline=field["inline"])
+                    else:
+                        embed.add_field(name=field["name"], value=field["value"])
 
         Embeds.add_footer(embed)
         return embed
