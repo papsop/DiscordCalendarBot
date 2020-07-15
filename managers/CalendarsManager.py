@@ -1,7 +1,10 @@
 import discord
 from datetime import datetime, timedelta
+import pytz
+
 from managers.helpers.embeds import Embeds
 
+days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 class CalendarsManager:
     _bot = None
     _teamupManager = None
@@ -13,22 +16,77 @@ class CalendarsManager:
         self._databaseManager = self._bot._databaseManager
         print("✓ CalendarsManager initialized")
     
-    def create_calendar_embed(self, calendar_data):
+    def create_calendar_embed(self, calendar_data, events_data):
         embed = discord.Embed()
         # default settings
         embed.color = Embeds.color_info
         embed.set_footer(text="nice")
         embed.timestamp = datetime.now()
-        embed.title = "\_" * 20 + "CALENDAR ID {0}".format(calendar_data["ID"]) + "\_" * 20
-        # content
-        embed.add_field(name="Monday XX-XX", value="```ini\n[nice]\n20:00 - 22:00 - something```", inline=False)
-        embed.add_field(name="Monday XX-XX", value="```ini\n[nice] ```", inline=False)
-        embed.add_field(name="Monday XX-XX", value="```ini\n[nice] ```", inline=False)
-        embed.add_field(name="Monday XX-XX", value="```ini\n[nice] ```", inline=False)
-        embed.add_field(name="Monday XX-XX", value="```ini\n[nice] ```", inline=False)
-        embed.add_field(name="Monday XX-XX", value="```ini\n[nice] ```", inline=False)
-        embed.add_field(name="Monday XX-XX", value="```ini\n[nice] ```", inline=False)
+        embed.title = "Calendar".format(calendar_data)
+
+        if calendar_data["datetype"] == 0:
+            date_fmt = "%d.%m.%Y"
+        else:
+            date_fmt = "%m/%d/%Y"
+        # calendar content
+        i = 0
+        for day in events_data["week"]:
+            day_dt = events_data["start_date"] + timedelta(days=i)
+            day_title = "{0} - {1}".format(days[day_dt.weekday()], day_dt.strftime(date_fmt))
+            day_string = ""
+            if len(day) > 0:
+                for event in day:
+                    if event["all_day"]:
+                        day_string += "[{0}]\n".format(event["title"])
+                    else:    
+                        day_string += "{0}\n".format(event["title"])
+            else:
+                day_string = "no events found for this day"
+            
+            embed.add_field(name=day_title, value="```ini\n{0}```".format(day_string), inline=False)
+            i +=1
+            
+
+
+        # settings + actions
+        datetype_str = "dd.mm.yyyy"
+        if calendar_data["datetype"] == 1:
+            datetype_str = "mm/dd/yyy"
+
+        timetype_str = "24-hours"
+        if calendar_data["timetype"] == 1:
+            timetype_str = "12-hours"
+        # that's a digusting line ngl
+        embed.add_field(name="Calendar settings", value="**ID**: {0[ID]}\n**Timezone**: {0[timezone]}\n**TimeType**: {0[timetype]} ({1})\n**DateType**: {0[datetype]} ({2})\n**Reminder time**: {0[reminder_time]} minutes".format(calendar_data, timetype_str, datetype_str))
+        embed.add_field(name="Actions", value="React with :hand_splayed: to get reminded before each event via DM.\nType `!help calendar` to change settings.")
         return embed
+    
+    def prepare_calendar_data(self, events, start_date, end_date, timezone):
+        """
+            Takes events and returns array of events per day ordered by time in calendar's timezone
+            Datetimes should be in calendar timezone
+        """
+        calendar_tz = pytz.timezone(timezone)
+        delta_days = (end_date - start_date).days
+        calendar = [[] for day in range(0, delta_days+1)]
+        for event in events:
+            # all day events don't have timezone, If you apply a timezone it will change day
+            if event["all_day"]:
+                e_start_dt = datetime.fromisoformat(event["start_dt"])
+                e_end_dt = datetime.fromisoformat(event["end_dt"])
+            else:
+                e_start_dt = datetime.fromisoformat(event["start_dt"]).astimezone(calendar_tz)
+                e_end_dt = datetime.fromisoformat(event["end_dt"]).astimezone(calendar_tz)
+            
+            # +366 handles new year (366 instead of 365 because January 1st is 0)
+            if e_start_dt.timetuple().tm_yday < start_date.timetuple().tm_yday:
+                index = (e_start_dt.timetuple().tm_yday + 366) - start_date.timetuple().tm_yday
+            else:
+                index = e_start_dt.timetuple().tm_yday - start_date.timetuple().tm_yday
+
+            calendar[index].append(event)
+
+        return calendar
 
     async def update_calendar_embed(self, server_id, calendar_id):
         calendar = None
@@ -47,6 +105,22 @@ class CalendarsManager:
         channel = guild.get_channel(calendar["channel_id"])
         message = await channel.fetch_message(calendar["message_id"])
         
-        calendar_embed = self.create_calendar_embed({"ID": calendar["ID"]})
+        date_fmt = "%Y-%m-%d"
+        calendar_tz = pytz.timezone(calendar["timezone"])
+        calendar_now = datetime.now().astimezone(calendar_tz)
+
+        # prepare dates for query - <now;start+8>
+        start_date = calendar_now
+        end_date = start_date + timedelta(days=7)
+
+        teamup_events = self._teamupManager.get_calendar_events(calendar["teamup_calendar_key"], start_date.strftime(date_fmt), end_date.strftime(date_fmt), calendar["timezone"], None)
+        calendar_events = self.prepare_calendar_data(teamup_events, start_date, end_date, calendar["timezone"])
+
+        events_data = {
+            "week": calendar_events,
+            "start_date": start_date,
+            "end_date": end_date
+        }
+        calendar_embed = self.create_calendar_embed(calendar, events_data)
 
         await message.edit(content="...", embed=calendar_embed)

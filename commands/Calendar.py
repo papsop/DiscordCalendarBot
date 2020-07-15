@@ -159,7 +159,8 @@ class Calendar(CommandBase):
             "server_id": message.guild.id,
             "timezone": calendar_timezone,
             "channel_id": calendar_channel.id,
-            "message_id": calendar_message.id
+            "message_id": calendar_message.id,
+            "teamup_calendar_key": calendar_key
         }
         try:
             calendar_id = self._bot._databaseManager.insert_calendar(calendar_data)

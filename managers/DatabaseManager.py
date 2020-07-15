@@ -36,7 +36,7 @@ class DatabaseManager:
                 'admin_id' UNSIGNED BIG INT NOT NULL,
                 'is_admin_user' BOOLEAN NOT NULL DEFAULT TRUE,
                 'calendars_num' INT NOT NULL DEFAULT 0,
-                'calendars_max' INT NOT NULL DEFAULT 10
+                'calendars_max' INT NOT NULL DEFAULT 20
             );
             CREATE TABLE IF NOT EXISTS calendar(
                 'ID' INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
@@ -44,7 +44,10 @@ class DatabaseManager:
                 'timezone' VARCHAR(50) NOT NULL,
                 'channel_id' UNSIGNED BIG INT NOT NULL,
                 'message_id' UNSIGNED BIG INT NOT NULL,
-                'teamup_calendar_key' VARCHAR(100),
+                'teamup_calendar_key' VARCHAR(100) NOT NULL,
+                'timetype' UNSIGNED TINYINT NOT NULL default '0',
+                'datetype' UNSIGNED TINYINT NOT NULL default '1',
+                'reminder_time' UNSIGNED SMALLINT NOT NULL default '15',
                 FOREIGN KEY(server_id) REFERENCES server(server_id)
             );
         """)
@@ -123,8 +126,8 @@ class DatabaseManager:
             server = self.get_server(calendar_data["server_id"])
             if server != None:
                 row = cursor.execute("""
-                    INSERT INTO calendar(server_id, timezone, channel_id, message_id) 
-                    VALUES(:server_id, :timezone, :channel_id, :message_id)
+                    INSERT INTO calendar(server_id, timezone, channel_id, message_id, teamup_calendar_key) 
+                    VALUES(:server_id, :timezone, :channel_id, :message_id, :teamup_calendar_key)
                     """, calendar_data)
 
                 last_id = cursor.execute("SELECT seq FROM sqlite_sequence WHERE name='calendar';").fetchone()
