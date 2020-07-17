@@ -27,7 +27,6 @@ print("=================================")
 @bot._client.event
 async def on_ready():
     print("Bot user: {0.user}".format(bot._client))
-    bot._client.loop.create_task(bot.periodic_update_calendars())
     print("=================================")
 
 @bot._client.event

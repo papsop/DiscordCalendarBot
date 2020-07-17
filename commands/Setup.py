@@ -14,7 +14,7 @@ class Setup(CommandBase):
     def __init__(self, commandsManager):
         self._commandsManager = commandsManager
         self.activation_string = "setup"
-        self.sub_commands = "setup"
+        self.sub_commands = "add, update"
         self._bot = self._commandsManager._bot
     
     async def action(self, message):
@@ -36,16 +36,7 @@ class Setup(CommandBase):
             admin_id = message.author.id
         
         if len(args) == 3: # TODO: implement role
-            # can be either user_mention, role mention or everyone mention
-            if len(message.mentions) > 0:
-                is_admin_user = True
-                admin_id = message.mentions[0].id
-            if len(message.role_mentions) > 0:
-                is_admin_user = False
-                admin_id = message.role_mentions[0].id
-            if message.mention_everyone: # can be @everyone or @here
-                is_admin_user = False
-                admin_id = 0
+            pass
 
         # check if server is already in db
         # TODO: Change prefix

@@ -1,6 +1,5 @@
 import discord
 from enum import Enum
-from datetime import datetime
 
 class Embeds(object):
     
@@ -17,18 +16,13 @@ class Embeds(object):
     @staticmethod
     def generate_embed(data):
         embed = discord.Embed()
-        embed.timestamp = datetime.utcnow()
+
         if data["type"] == "SUCCESS":
             embed.color = Embeds.color_success
         elif data["type"] == "ERROR":
             embed.color = Embeds.color_error
         else:
             embed.color = Embeds.color_info
-
-        if "execution_time" in data:
-            exec_time = data["execution_time"]
-        else:
-            exec_time = None
 
         embed.title = data["title"]
         if "description" in data:
@@ -42,13 +36,9 @@ class Embeds(object):
                     else:
                         embed.add_field(name=field["name"], value=field["value"])
 
-        Embeds.add_footer(embed, exec_time)
+        Embeds.add_footer(embed)
         return embed
 
     @staticmethod
-    def add_footer(embed, execution_time):
-        execution_time_str = ""
-        if execution_time != None:
-            execution_time_str = " | Execution time: {0}s".format(round(execution_time, 3))
-        
-        embed.set_footer(text="Bot by @BlueX_ow".format(execution_time_str), icon_url="https://discord.com/assets/2c21aeda16de354ba5334551a883b481.png")
+    def add_footer(embed):
+        embed.set_footer(text="footer text")

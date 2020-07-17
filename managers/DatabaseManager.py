@@ -1,8 +1,6 @@
 import config
 import sqlite3
 import sys
-from datetime import datetime
-import pytz
 
 def dict_factory(cursor, row):
     d = {}
@@ -48,9 +46,8 @@ class DatabaseManager:
                 'message_id' UNSIGNED BIG INT NOT NULL,
                 'teamup_calendar_key' VARCHAR(100) NOT NULL,
                 'timetype' UNSIGNED TINYINT NOT NULL default '0',
-                'datetype' UNSIGNED TINYINT NOT NULL default '0',
+                'datetype' UNSIGNED TINYINT NOT NULL default '1',
                 'reminder_time' UNSIGNED SMALLINT NOT NULL default '15',
-                'last_update' DATETIME NOT NULL,
                 FOREIGN KEY(server_id) REFERENCES server(server_id)
             );
         """)
@@ -76,6 +73,7 @@ class DatabaseManager:
 
         self.commit()
         cursor.close()
+        print("Server {0[server_id]} with prefix '{0[prefix]}' successfully added.".format(server_data))
     
     def update_server(self, new_server_data):
         cursor = self.get_cursor()
@@ -93,6 +91,7 @@ class DatabaseManager:
             
         self.commit()
         cursor.close()
+        print("Server {0[server_id]} updated - new prefix={0[prefix]}, admin_id={0[admin_id]}, is_admin_user={0[is_user_admin]} ".format(new_server_data))
 
     def get_server(self, server_id):
         cursor = self.get_cursor()
@@ -126,11 +125,9 @@ class DatabaseManager:
 
             server = self.get_server(calendar_data["server_id"])
             if server != None:
-                now_utc = datetime.utcnow()
-                calendar_data["last_update"] = now_utc
                 row = cursor.execute("""
-                    INSERT INTO calendar(server_id, timezone, channel_id, message_id, teamup_calendar_key, last_update) 
-                    VALUES(:server_id, :timezone, :channel_id, :message_id, :teamup_calendar_key, :last_update)
+                    INSERT INTO calendar(server_id, timezone, channel_id, message_id, teamup_calendar_key) 
+                    VALUES(:server_id, :timezone, :channel_id, :message_id, :teamup_calendar_key)
                     """, calendar_data)
 
                 last_id = cursor.execute("SELECT seq FROM sqlite_sequence WHERE name='calendar';").fetchone()
@@ -155,61 +152,3 @@ class DatabaseManager:
             raise e
 
         return row
-    
-    def update_calendar_setting(self, server_id, calendar_id, name, value):
-        if name != "timezone" and name != "datetype" and name != "timetype":
-            raise Exception("[DatabaseManager.update_calendar_setting] name must be timezone/datetype/timetype")
-
-        cursor = self.get_cursor()
-        try:
-            # can't put variable as column name :(
-            if name == "timezone":
-                row = cursor.execute("UPDATE calendar SET timezone=? WHERE ID=? AND server_id=?;", (value, calendar_id, server_id, ))
-            elif name == "datetype":
-                row = cursor.execute("UPDATE calendar SET datetype=? WHERE ID=? AND server_id=?;", (value, calendar_id, server_id, ))
-            elif name == "timetype":
-                row = cursor.execute("UPDATE calendar SET timetype=? WHERE ID=? AND server_id=?;", (value, calendar_id, server_id, ))
-        except Exception as e:
-            raise e
-        
-        self.commit()
-        cursor.close()
-        return row
-
-    # SOME DELETING
-    def delete_calendars_by_channel(self, channel_id):
-        # unable to find this channel_id -> delete all calendars with this channel
-        cursor = self.get_cursor()
-        try:
-            row = cursor.execute("DELETE FROM calendar WHERE channel_id=?;", (channel_id, ))
-        except Exception as e:
-            raise e
-        
-        self.commit()
-        cursor.close()
-        return row
-
-    def delete_calendars_by_message(self, message_id):
-        # unable to find this message_id -> delete calendar
-        cursor = self.get_cursor()
-        try:
-            row = cursor.execute("DELETE FROM calendar WHERE message_id=?;", (message_id, ))
-        except Exception as e:
-            raise e
-        
-        self.commit()
-        cursor.close()
-        return row
-    
-    def delete_server(self, server_id):
-        # unable to find server -> delete server and all calendars
-        cursor = self.get_cursor()
-        try:
-            row2 = cursor.execute("DELETE FROM calendar WHERE server_id=?;", (server_id, ))
-            row = cursor.execute("DELETE FROM server WHERE server_id=?;", (server_id, ))
-        except Exception as e:
-            raise e
-        
-        self.commit()
-        cursor.close()
-        return row2
