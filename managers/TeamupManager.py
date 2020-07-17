@@ -32,12 +32,7 @@ class TeamupManager:
         }
     
     def get_calendar_events(self, calendar_key, start_date, end_date, timezone, filters):
-        """
-            https://api.teamup.com/ksq5het12ahicg5yyz/events?tz=UTC&startDate=2020-01-01&endDate=2020-12-12
-        """
-        #print("Start_dt={0}, end_dt={1}".format(start_date, end_date))
         url = self._base + "/{0}/events?tz={1}&startDate={2}&endDate={3}".format(calendar_key, timezone, start_date, end_date)
-        #print(url)
         r = requests.get(url, headers=self._headers)
         if r.status_code == 200:
             return r.json()["events"]
