@@ -24,6 +24,8 @@ class CalendarsManager:
         embed.timestamp = datetime.now()
         embed.title = "Calendar".format(calendar_data)
 
+        server = self._bot._cacheManager.get_server_cache(calendar_data["server_id"])
+
         if calendar_data["datetype"] == 0:
             date_fmt = "%d.%m.%Y"
         else:
@@ -70,7 +72,7 @@ class CalendarsManager:
             timetype_str = "12-hours"
         # that's a digusting line ngl
         embed.add_field(name="Calendar settings", value="**ID**: {0[ID]}\n**Timezone**: {0[timezone]}\n**TimeType**: {0[timetype]} ({1})\n**DateType**: {0[datetype]} ({2})\n**Reminder time**: {0[reminder_time]} minutes".format(calendar_data, timetype_str, datetype_str))
-        embed.add_field(name="Actions", value="React with :hand_splayed: to get reminded before each event via DM.\nType `!help calendar` to change settings.")
+        embed.add_field(name="Actions", value="React with :hand_splayed: to get reminded before each event via DM.\nType `{0}help calendar` to change settings.".format(server["prefix"]))
         return embed
     
     def prepare_calendar_data(self, events, start_date, end_date, timezone):
