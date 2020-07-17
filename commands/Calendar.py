@@ -17,22 +17,16 @@ class Calendar(CommandBase):
         """
         self._commandsManager = commandsManager
         self.activation_string = "calendar"
-        self.sub_commands = "add"
+        self.sub_commands = "add, set"
         self._bot = self._commandsManager._bot
     
     async def action(self, message):
         args = message.content.split(' ')
-        if len(args) != 4 and len(args) != 5:
-            return {
-                "embed": {
-                    "type": "ERROR",
-                    "title": "An error has occured",
-                    "description": "This command requires 4 or 5 parameters, use `[prefix]help calendar` for command usage."
-                }
-            }
-        
+
         if args[1] == "add":
             return await self.add_calendar(message, args)
+        elif args[1] == "set":
+            return await self.set_calendar(message, args)
 
         return {
             "embed": {
@@ -46,6 +40,15 @@ class Calendar(CommandBase):
     #    ADD CALENDAR
     # ==================
     async def add_calendar(self, message, args):
+        if len(args) != 4 and len(args) != 5:
+            return {
+                "embed": {
+                    "type": "ERROR",
+                    "title": "An error has occured",
+                    "description": "This command requires 4 or 5 parameters, use `[prefix]help calendar` for command usage."
+                }
+            }
+
         calendar_timezone = args[2]
         create_channel = False
         calendar_channel = None
@@ -203,3 +206,84 @@ class Calendar(CommandBase):
                     ]
                 }
             }
+    # ==================
+    #    SET CALENDAR
+    # ==================
+    async def set_calendar(self, message, args):
+        """
+            [prefix]calendar set [id] [name] [value]
+        """
+        if len(args) != 5:
+            return {
+                "embed": {
+                    "type": "ERROR",
+                    "title": "An error has occured",
+                    "description": "This command requires 5 parameters, use `[prefix]help calendar` for command usage."
+                }
+            }    
+        # check id
+        if not args[2].isdigit():
+            return {
+                "embed": {
+                    "type": "ERROR",
+                    "title": "An error has occured",
+                    "description": "Provided channel ID must be a number!"
+                }
+            }
+
+        # check if calendar exists
+        calendar = self._bot._databaseManager.get_calendar(message.guild.id, int(args[2]))
+        if calendar == None:
+            return {
+                "embed": {
+                    "type": "ERROR",
+                    "title": "An error has occured",
+                    "description": "Calendar with given ID not found."
+                }
+            }
+        
+        # check name
+        name = args[3]
+        if name != "timezone" and name != "timetype" and name != "datetype":
+            return {
+                "embed": {
+                    "type": "ERROR",
+                    "title": "An error has occured",
+                    "description": "Incorrect set name (only timezone/timetype/datetype supported)"
+                }
+            }
+        
+        # check value type
+        value = args[4]
+        if name == "timezone":
+            if not value in pytz.all_timezones:
+                return {
+                    "embed": {
+                        "type": "ERROR",
+                        "title": "An error has occured",
+                        "description": "Unknown timezone provided, please use [THIS LIST](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) as a reference. Example: Europe/Bratislava"
+                    }
+                }
+            # everything cool
+        elif name == "datetype" or name == "timetype":
+            if not value.isdigit() or (int(value) != 0 and int(value) != 1):
+                return {
+                    "embed": {
+                        "type": "ERROR",
+                        "title": "An error has occured",
+                        "description": "Value for Datetype and Timetype has to be 0 or 1."
+                    }
+                }
+            value = int(value)
+        try:
+            result = self._bot._databaseManager.update_calendar_setting(message.guild.id, calendar["ID"], name, value)
+        except Exception as e:
+            return self._bot.exception_msg(str(e))
+
+        return {
+            "embed": {
+                "type": "SUCCESS",
+                "title": "Calendar created",
+                "description": "Calendar with **ID {0}** has been successfully updated ({1} is now {2}).".format(calendar["ID"], name, value),
+            }
+        }

@@ -28,6 +28,11 @@ class CalendarsManager:
             date_fmt = "%d.%m.%Y"
         else:
             date_fmt = "%m/%d/%Y"
+        
+        if calendar_data["timetype"] == 0:
+            time_fmt = "%H:%M"
+        else:
+            time_fmt = "%I:%M%p"
         # calendar content
         i = 0
         for day in events_data["week"]:
@@ -36,10 +41,17 @@ class CalendarsManager:
             day_string = ""
             if len(day) > 0:
                 for event in day:
+                    if event["who"] != "":
+                        who_string = "({0})".format(event["who"])
+                    else:
+                        who_string = ""
+
                     if event["all_day"]:
-                        day_string += "[{0}]\n".format(event["title"])
+                        day_string += "[{0}] {1}\n".format(event["title"], who_string)
                     else:    
-                        day_string += "{0}\n".format(event["title"])
+                        time_start = event["start_dt"].strftime(time_fmt)
+                        time_end = event["end_dt"].strftime(time_fmt)
+                        day_string += "{0} - {1} -> {2} {3}\n".format(time_start, time_end, event["title"], who_string)
             else:
                 day_string = "no events found for this day"
             
@@ -70,7 +82,6 @@ class CalendarsManager:
         delta_days = (end_date - start_date).days
         calendar = [[] for day in range(0, delta_days+1)]
         for event in events:
-            # all day events don't have timezone, If you apply a timezone it will change day
             if event["all_day"]:
                 e_start_dt = datetime.fromisoformat(event["start_dt"])
                 e_end_dt = datetime.fromisoformat(event["end_dt"])
@@ -78,13 +89,25 @@ class CalendarsManager:
                 e_start_dt = datetime.fromisoformat(event["start_dt"]).astimezone(calendar_tz)
                 e_end_dt = datetime.fromisoformat(event["end_dt"]).astimezone(calendar_tz)
             
-            # +366 handles new year (366 instead of 365 because January 1st is 0)
-            if e_start_dt.timetuple().tm_yday < start_date.timetuple().tm_yday:
-                index = (e_start_dt.timetuple().tm_yday + 366) - start_date.timetuple().tm_yday
-            else:
-                index = e_start_dt.timetuple().tm_yday - start_date.timetuple().tm_yday
+            event["start_dt"] = e_start_dt
+            event["end_dt"] = e_end_dt
 
-            calendar[index].append(event)
+            # All day events are tricky - let's compare this week interval to start/end of long all-day
+            if event["all_day"]:
+                # This might be buggy upon new year, so let's revisit it
+                start_date_no_tz = start_date.replace(tzinfo=None)
+                for i in range(0, delta_days+1):
+                    loop_day = start_date_no_tz + timedelta(days=i)
+                    if loop_day >= event["start_dt"] and loop_day <= event["end_dt"]:
+                        calendar[i].append(event)
+            else:
+                # +366 handles new year (366 instead of 365 because January 1st is 0)
+                if e_start_dt.timetuple().tm_yday < start_date.timetuple().tm_yday:
+                    index = (e_start_dt.timetuple().tm_yday + 366) - start_date.timetuple().tm_yday
+                else:
+                    index = e_start_dt.timetuple().tm_yday - start_date.timetuple().tm_yday
+
+                calendar[index].append(event)
 
         return calendar
 
@@ -109,7 +132,7 @@ class CalendarsManager:
         calendar_tz = pytz.timezone(calendar["timezone"])
         calendar_now = datetime.now().astimezone(calendar_tz)
 
-        # prepare dates for query - <now;start+8>
+        # prepare dates for query - <now;start+7>
         start_date = calendar_now
         end_date = start_date + timedelta(days=7)
 
@@ -122,5 +145,7 @@ class CalendarsManager:
             "end_date": end_date
         }
         calendar_embed = self.create_calendar_embed(calendar, events_data)
+        
+        Embeds.add_footer(calendar_embed, None)
 
         await message.edit(content="...", embed=calendar_embed)
