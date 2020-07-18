@@ -1,4 +1,5 @@
 import discord
+import time
 from datetime import datetime, timedelta
 import pytz
 
@@ -15,13 +16,14 @@ class CalendarsManager:
         self._teamupManager = self._bot._teamupManager
         self._databaseManager = self._bot._databaseManager
         print("✓ CalendarsManager initialized")
-    
+
+    # since theres some stuff with servers/database keep it here instead of helpers/embeds.py
     def create_calendar_embed(self, calendar_data, events_data):
         embed = discord.Embed()
         # default settings
         embed.color = Embeds.color_info
         embed.set_footer(text="nice")
-        embed.timestamp = datetime.now()
+        embed.timestamp = datetime.utcnow()
         embed.title = "Calendar".format(calendar_data)
 
         server = self._bot._cacheManager.get_server_cache(calendar_data["server_id"])
@@ -59,8 +61,6 @@ class CalendarsManager:
             
             embed.add_field(name=day_title, value="```ini\n{0}```".format(day_string), inline=False)
             i +=1
-            
-
 
         # settings + actions
         datetype_str = "dd.mm.yyyy"
@@ -72,7 +72,7 @@ class CalendarsManager:
             timetype_str = "12-hours"
         # that's a digusting line ngl
         embed.add_field(name="Calendar settings", value="**ID**: {0[ID]}\n**Timezone**: {0[timezone]}\n**TimeType**: {0[timetype]} ({1})\n**DateType**: {0[datetype]} ({2})\n**Reminder time**: {0[reminder_time]} minutes".format(calendar_data, timetype_str, datetype_str))
-        embed.add_field(name="Actions", value="React with :hand_splayed: to get reminded before each event via DM.\nType `{0}help calendar` to change settings.".format(server["prefix"]))
+        embed.add_field(name="Actions", value="React with :hand_splayed: to get reminded before each event via DM.\nType `{0}help calendar` to change settings.\n".format(server["prefix"]))
         return embed
     
     def prepare_calendar_data(self, events, start_date, end_date, timezone):
@@ -90,20 +90,25 @@ class CalendarsManager:
             else:
                 e_start_dt = datetime.fromisoformat(event["start_dt"]).astimezone(calendar_tz)
                 e_end_dt = datetime.fromisoformat(event["end_dt"]).astimezone(calendar_tz)
-            
+
             event["start_dt"] = e_start_dt
             event["end_dt"] = e_end_dt
+            start_date_no_tz = start_date.replace(tzinfo=None)
 
-            # All day events are tricky - let's compare this week interval to start/end of long all-day
+            # All day events and multiple days events are tricky
             if event["all_day"]:
                 # This might be buggy upon new year, so let's revisit it
-                start_date_no_tz = start_date.replace(tzinfo=None)
                 for i in range(0, delta_days+1):
                     loop_day = start_date_no_tz + timedelta(days=i)
                     if loop_day >= event["start_dt"] and loop_day <= event["end_dt"]:
                         calendar[i].append(event)
             else:
-                # +366 handles new year (366 instead of 365 because January 1st is 0)
+                # skip multiple days events
+                # TeamUP returns it as a single event and I don't know
+                # how to nicely format it yet(tm)
+                if e_start_dt < start_date:
+                    continue
+                # +366 handles new year (366 instead of 365 because January 1st is 0) - probably buggy, but fixable later
                 if e_start_dt.timetuple().tm_yday < start_date.timetuple().tm_yday:
                     index = (e_start_dt.timetuple().tm_yday + 366) - start_date.timetuple().tm_yday
                 else:

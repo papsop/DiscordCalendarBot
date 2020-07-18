@@ -1,7 +1,7 @@
 import config
 import sqlite3
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta
 import pytz
 
 def dict_factory(cursor, row):
@@ -53,6 +53,11 @@ class DatabaseManager:
                 'last_update' DATETIME NOT NULL,
                 FOREIGN KEY(server_id) REFERENCES server(server_id)
             );
+            CREATE TABLE IF NOT EXISTS reminded_event(
+                'ID' INTEGER NOT NULL,
+                'version' VARCHAR(50) NOT NULL,
+                'timestamp' TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
         """)
         print("  ✓ Database tables updated")
 
@@ -157,8 +162,8 @@ class DatabaseManager:
         return row
     
     def update_calendar_setting(self, server_id, calendar_id, name, value):
-        if name != "timezone" and name != "datetype" and name != "timetype":
-            raise Exception("[DatabaseManager.update_calendar_setting] name must be timezone/datetype/timetype")
+        if name != "timezone" and name != "datetype" and name != "timetype" and name != "reminder":
+            raise Exception("[DatabaseManager.update_calendar_setting] name must be timezone/datetype/timetype/reminder")
 
         cursor = self.get_cursor()
         try:
@@ -169,6 +174,8 @@ class DatabaseManager:
                 row = cursor.execute("UPDATE calendar SET datetype=? WHERE ID=? AND server_id=?;", (value, calendar_id, server_id, ))
             elif name == "timetype":
                 row = cursor.execute("UPDATE calendar SET timetype=? WHERE ID=? AND server_id=?;", (value, calendar_id, server_id, ))
+            elif name == "reminder":
+                row = cursor.execute("UPDATE calendar SET reminder_time=? WHERE ID=? AND server_id=?;", (value, calendar_id, server_id, ))
         except Exception as e:
             raise e
         
@@ -213,3 +220,45 @@ class DatabaseManager:
         self.commit()
         cursor.close()
         return row2
+
+    # =====================
+    #    REMINDED EVENTS
+    # =====================
+
+    def clean_reminded_events(self):
+        cursor = self.get_cursor()
+        try:
+            time_2weeks_back = (datetime.now() - timedelta(days=14))
+            row = cursor.execute("DELETE FROM reminded_event WHERE timestamp <= ?", (time_2weeks_back, )).fetchall()
+            print("{0} Database cleaned".format(datetime.now()))
+        except Exception as e: # no further raising since it's only used in periodic checks
+            cursor.close()
+            self._bot.backend_log("[DatabaseManager.clean_reminded_events]", str(e))
+
+        self.commit()
+        cursor.close()
+
+    def add_reminded_event(self, event_id, version):
+        cursor = self.get_cursor()
+        try:
+            row = cursor.execute("""
+                INSERT INTO reminded_event(ID, version) 
+                VALUES(?, ?)
+                """, (event_id, version, ))
+        except Exception as e: # no further raising since it's only used in periodic checks
+            cursor.close()
+            self._bot.backend_log("[DatabaseManager.add_reminded_event]", str(e))
+
+        self.commit()
+        cursor.close()
+
+    def get_reminded_event(self, event_id, version):
+        cursor = self.get_cursor()
+        try:
+            row = cursor.execute("SELECT * FROM reminded_event WHERE ID=? AND version=?;", (event_id, version, )).fetchone()
+        except Exception as e: # no further raising since it's only used in periodic checks
+            cursor.close()
+            self._bot.backend_log("[DatabaseManager.add_reminded_event]", str(e))
+
+        cursor.close()
+        return row

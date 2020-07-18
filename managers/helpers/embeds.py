@@ -52,3 +52,15 @@ class Embeds(object):
             execution_time_str = " | Execution time: {0}s".format(round(execution_time, 3))
         
         embed.set_footer(text="Bot by @BlueX_ow".format(execution_time_str), icon_url="https://discord.com/assets/2c21aeda16de354ba5334551a883b481.png")
+    
+    @staticmethod
+    def create_reminder_embed(data):
+        embed = discord.Embed()
+        embed.timestamp = datetime.utcnow()
+        embed.color = Embeds.color_info
+        embed.title = "Hey **{0.name}**!".format(data["user"])
+        embed.description = """There's an event with title **{0[title]}** happening in approximately {0[reminder_time]} minutes. Don't forget!
+                                You received this DM because you subscribed to a calendar in <#{0[channel_id]}>""".format(data)
+
+        Embeds.add_footer(embed, None)
+        return embed

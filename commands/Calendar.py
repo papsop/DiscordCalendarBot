@@ -45,7 +45,7 @@ class Calendar(CommandBase):
                 "embed": {
                     "type": "ERROR",
                     "title": "An error has occured",
-                    "description": "This command requires 4 or 5 parameters, use `[prefix]help calendar` for command usage."
+                    "description": "This command requires 2 or 3 parameters, use `[prefix]help calendar` for command usage."
                 }
             }
 
@@ -178,6 +178,7 @@ class Calendar(CommandBase):
         # ================================
         try:
             await self._bot._calendarsManager.update_calendar_embed(message.guild.id, calendar_id)
+            await calendar_message.add_reaction("🖐️")
         except Exception as e:
             return self._bot.exception_msg(str(e))
 
@@ -218,7 +219,7 @@ class Calendar(CommandBase):
                 "embed": {
                     "type": "ERROR",
                     "title": "An error has occured",
-                    "description": "This command requires 5 parameters, use `[prefix]help calendar` for command usage."
+                    "description": "This command requires 3 parameters, use `[prefix]help calendar` for command usage."
                 }
             }    
         # check id
@@ -244,12 +245,12 @@ class Calendar(CommandBase):
         
         # check name
         name = args[3]
-        if name != "timezone" and name != "timetype" and name != "datetype":
+        if name != "timezone" and name != "timetype" and name != "datetype" and name != "reminder":
             return {
                 "embed": {
                     "type": "ERROR",
                     "title": "An error has occured",
-                    "description": "Incorrect set name (only timezone/timetype/datetype supported)"
+                    "description": "Incorrect set name (only timezone/timetype/datetype/reminder supported)"
                 }
             }
         
@@ -264,7 +265,7 @@ class Calendar(CommandBase):
                         "description": "Unknown timezone provided, please use [THIS LIST](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) as a reference. Example: Europe/Bratislava"
                     }
                 }
-            # everything cool
+        # everything cool
         elif name == "datetype" or name == "timetype":
             if not value.isdigit() or (int(value) != 0 and int(value) != 1):
                 return {
@@ -272,6 +273,16 @@ class Calendar(CommandBase):
                         "type": "ERROR",
                         "title": "An error has occured",
                         "description": "Value for Datetype and Timetype has to be 0 or 1."
+                    }
+                }
+            value = int(value)
+        elif name == "reminder":
+            if not value.isdigit():
+                return {
+                    "embed": {
+                        "type": "ERROR",
+                        "title": "An error has occured",
+                        "description": "Value for Reminder has to be a number"
                     }
                 }
             value = int(value)
