@@ -48,9 +48,11 @@ class CacheManager:
         self.reload_servers_cache()
 
     def update_server(self, server_data):
-        print("UPDATING SERVER LOOL")
-        print(server_data)
-        print("jk")
+        try:
+            self._databaseManager.update_server(server_data)
+        except:
+            raise
+        self.reload_servers_cache()
 
     def update_calendar_num(self, server_id, new_num):
         try:

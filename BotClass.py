@@ -96,7 +96,11 @@ class Bot:
 
                     teamup_events = self._teamupManager.get_calendar_events(calendar["teamup_calendar_key"], start_date.strftime(date_fmt), end_date.strftime(date_fmt), calendar["timezone"], None)
                     
-                    calendar_events = self._calendarsManager.prepare_calendar_data(teamup_events, start_date, end_date, calendar["timezone"])
+                    if teamup_events != None:
+                        calendar_events = self._calendarsManager.prepare_calendar_data(teamup_events, start_date, end_date, calendar["timezone"])
+                    else:
+                        # Can't fetch events from teamup, skip this calendar (maybe they deleted key)
+                        continue
 
                     #
                     # HANDLING REMINDERS

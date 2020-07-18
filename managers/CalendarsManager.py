@@ -51,7 +51,7 @@ class CalendarsManager:
                         who_string = ""
 
                     if event["all_day"]:
-                        day_string += "[{0}] {1}\n".format(event["title"], who_string)
+                        day_string += "= {0} = {1}\n".format(event["title"], who_string)
                     else:    
                         time_start = event["start_dt"].strftime(time_fmt)
                         time_end = event["end_dt"].strftime(time_fmt)
@@ -59,7 +59,7 @@ class CalendarsManager:
             else:
                 day_string = "no events found for this day"
             
-            embed.add_field(name=day_title, value="```ini\n{0}```".format(day_string), inline=False)
+            embed.add_field(name=day_title, value="```asciidoc\n{0}```".format(day_string), inline=False)
             i +=1
 
         # settings + actions

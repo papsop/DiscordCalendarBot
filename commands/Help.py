@@ -103,3 +103,11 @@ class Help(CommandBase):
                         ]
                     }
                 }
+
+        return {
+            "embed": {
+                "type": "ERROR",
+                "title": "An error has occured",
+                "description": "Please specify a command after `[prefix]help` (f.e. `!help calendar`)"
+            }
+        }

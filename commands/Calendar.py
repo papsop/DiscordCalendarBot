@@ -23,6 +23,48 @@ class Calendar(CommandBase):
     async def action(self, message):
         args = message.content.split(' ')
 
+        # check for permissions
+        server = self._bot._cacheManager.get_server_cache(message.guild.id)
+        if server == None:
+            return {
+                "embed": {
+                    "type": "ERROR",
+                    "title": "An error has occured",
+                    "description": "Server hasn't been set-up yet, use `!help setup`."
+                }
+            }
+        
+        if server["admin_id"] == 0:
+            pass
+        elif server["is_admin_user"] == True:
+            if message.author.id == server["admin_id"]:
+                pass
+            else:
+                return {
+                    "embed": {
+                        "type": "ERROR",
+                        "title": "An error has occured",
+                        "description": "Insufficient user's permission. Contact the admin (<@{0}>) that setup this bot.".format(server["admin_id"])
+                    }
+                }
+        elif server["is_admin_user"] == False:
+            found = False
+            for role in message.author.roles:
+                if role.id == server["admin_id"]:
+                    found = True
+                    break
+            if not found:
+                return {
+                    "embed": {
+                        "type": "ERROR",
+                        "title": "An error has occured",
+                        "description": "Insufficient user's permission. A special role (<@&{0}>) is needed to operate this bot.".format(server["admin_id"])
+                    }
+                }
+        else:
+            return "huh?"
+  
+
         if args[1] == "add":
             return await self.add_calendar(message, args)
         elif args[1] == "set":

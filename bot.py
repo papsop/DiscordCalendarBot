@@ -29,8 +29,12 @@ print("=================================")
 @bot._client.event
 async def on_ready():
     print("Bot user: {0.user}".format(bot._client))
+    # register periodic checks
     bot._client.loop.create_task(bot.periodic_update_calendars())
     bot._client.loop.create_task(bot.periodic_clean_db())
+    # update bot's game status
+    game = discord.Game("calendar.patrikpapso.com")
+    await bot._client.change_presence(status=discord.Status.online, activity=game)
     print("=================================")
 
 @bot._client.event

@@ -85,12 +85,12 @@ class DatabaseManager:
     def update_server(self, new_server_data):
         cursor = self.get_cursor()
         try:
-            if not 'server_id' in server_data or not 'prefix' in server_data \
-            or not 'admin_id' in server_data or not 'is_admin_user' in server_data:
+            if not 'server_id' in new_server_data or not 'prefix' in new_server_data \
+            or not 'admin_id' in new_server_data or not 'is_admin_user' in new_server_data:
                 raise Exception("[DatabaseManager.update_server] Missing parameters")
                 
             row = cursor.execute("""
-                UPDATE server SET prefix=:prefix, admin_id=:admin_id, is_admin_user:is_admin_user WHERE server_id=:server_id
+                UPDATE server SET prefix=:prefix, admin_id=:admin_id, is_admin_user=:is_admin_user WHERE server_id=:server_id
             """, new_server_data)
         except Exception as e:
             cursor.close()
