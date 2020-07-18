@@ -34,6 +34,7 @@ class DatabaseManager:
         cursor.executescript("""
             CREATE TABLE IF NOT EXISTS server(
                 'server_id' UNSIGNED BIG INT NOT NULL UNIQUE PRIMARY KEY,
+                'name' VARCHAR(255),
                 'prefix' VARCHAR(10) NOT NULL DEFAULT '!',
                 'admin_id' UNSIGNED BIG INT NOT NULL,
                 'is_admin_user' BOOLEAN NOT NULL DEFAULT TRUE,
@@ -72,8 +73,8 @@ class DatabaseManager:
                 raise Exception("[DatabaseManager.insert_server] Missing parameters")
 
             row = cursor.execute("""
-                INSERT INTO server(server_id, prefix, admin_id, is_admin_user) 
-                VALUES(:server_id, :prefix, :admin_id, :is_admin_user)
+                INSERT INTO server(server_id, prefix, admin_id, is_admin_user, name) 
+                VALUES(:server_id, :prefix, :admin_id, :is_admin_user, :name)
                 """, server_data)
         except Exception as e: # TODO
             cursor.close()
@@ -150,17 +151,32 @@ class DatabaseManager:
         return last_id["seq"]
         
     def get_calendar(self, server_id, calendar_id):
-        if server_id == None or  calendar_id == None:
+        if server_id == None or calendar_id == None:
             raise Exception("[DatabaseManager.get_calendar] Server_id or Calendar_id missing")
         
         cursor = self.get_cursor()
         try:
             row = cursor.execute("SELECT * FROM calendar WHERE ID=? AND server_id=?;", (calendar_id, server_id, )).fetchone()
         except Exception as e:
+            cursor.close()
             raise e
 
+        cursor.close()
         return row
     
+    def update_calendar_timestamp(self, calendar_id):
+        if calendar_id == None:
+            raise Exception("[DatabaseManager.get_calendar] Server_id or Calendar_id missing")
+        cursor = self.get_cursor()
+        try:
+            row = cursor.execute("UPDATE calendar SET last_update=? WHERE ID=?;", (datetime.now(), calendar_id, ))
+        except Exception as e:
+            cursor.close()
+            raise e
+
+        cursor.close()
+        return row
+
     def update_calendar_setting(self, server_id, calendar_id, name, value):
         if name != "timezone" and name != "datetype" and name != "timetype" and name != "reminder":
             raise Exception("[DatabaseManager.update_calendar_setting] name must be timezone/datetype/timetype/reminder")

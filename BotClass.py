@@ -4,6 +4,8 @@ import asyncio
 import time
 from datetime import datetime, timedelta
 import pytz
+import logging
+import random
 from managers.CommandsManager import CommandsManager
 from managers.DatabaseManager import DatabaseManager
 from managers.StatisticsManager import StatisticsManager
@@ -45,27 +47,42 @@ class Bot:
         while True:
             self._databaseManager.clean_reminded_events()
             await asyncio.sleep(1314900) # check twice a month
-            #await asyncio.sleep(30) 
 
     async def periodic_update_calendars(self):
         print("✓ Periodic_update_calendars initialized")
+
+        # logging stuff
+        logger = logging.getLogger('calendar_bot')
+        logger.setLevel(logging.DEBUG)
+        fh = logging.FileHandler('periodic_times.log')
+        fh.setLevel(logging.DEBUG)
+        logger.addHandler(fh)
+
         while True:
             # let's skip DatabaseManager and create custom query
             cursor = self._databaseManager.get_cursor()
+            start_time = time.time()
 
             try:
-                calendars = cursor.execute("SELECT * FROM calendar;").fetchall()
+                time_3min_back = (datetime.now() - timedelta(minutes=3))
+                calendars = cursor.execute("SELECT * FROM calendar WHERE last_update <= ?;", (time_3min_back, )).fetchall()
             except Exception as e:
+                cursor.close()
                 self.backend_log("periodic_update_calendars", str(e))
-            
+            cursor.close()
+            start_time = time.time()
             date_fmt = "%Y-%m-%d"
             for calendar in calendars:
                 message = None
                 try:
+                    # update timestamp for calendar
+                    self._databaseManager.update_calendar_timestamp(calendar["ID"])
+
                     guild = self._client.get_guild(calendar["server_id"])
                     if guild == None:
                         # bot got kicked from the server -> delete server and all calendars
                         self._databaseManager.delete_server(calendar["server_id"])
+                        self._cacheManager.reload_servers_cache()
                         continue # obv skip
                     channel = guild.get_channel(calendar["channel_id"])
                     if channel == None:
@@ -131,7 +148,7 @@ class Bot:
                                         reminder_embed = Embeds.create_reminder_embed(event)
                                         await dm_channel.send(content=".", embed=reminder_embed)
                                 except Exception as e:
-                                    self.backend_log("periodic_update_calendars", str(e))
+                                    self.backend_log("periodic_update_calendars{reminding users}", str(e))
 
                                 # save that we reminded this one        
                                 self._databaseManager.add_reminded_event(event["id"], event["version"])
@@ -149,8 +166,12 @@ class Bot:
                         await message.add_reaction("🖐️") # in case admin removed reactions, add it back
                 except Exception as e:
                     self.backend_log("periodic_update_calendars{for calendar}", str(e))
-            # wait 1 minute before repeating
-            await asyncio.sleep(30)
+            # log every loop time
+            loop_time = (time.time() - start_time)
+            random_variaton = 45 + random.randint(0, 45)
+            logger.info("[{0}] update took {1}s (next loop is in {2}s)".format(datetime.now(), round(loop_time, 4), random_variaton))
+            # wait 45 + random(45) seconds before repeating
+            await asyncio.sleep(random_variaton)
 
     # ==============
     #    Messages

@@ -28,8 +28,8 @@ class CacheManager:
                 "prefix": server["prefix"],
                 "admin_id": server["admin_id"],
                 "is_admin_user": server["is_admin_user"],
-                "calendars_num": server["calendars_num"],
-                "calendars_max": server["calendars_max"]
+                "calendars_num": server["calendars_num"], # not used just yet
+                "calendars_max": server["calendars_max"]  # not used just yet
             }
         print("  ✓ servers_cache reloaded")
 

@@ -50,6 +50,7 @@ class Setup(CommandBase):
         # create obj for database
         server_data = { 
             'server_id': message.guild.id, 
+            'name': message.guild.name,
             'prefix': args[1],
             'admin_id': admin_id,
             'is_admin_user': is_admin_user
