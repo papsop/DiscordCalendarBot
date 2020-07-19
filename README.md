@@ -2,6 +2,8 @@
 This is a source code of my unofficial Discord TeamUP Calendar bot.
 A guide on how to use the bot can be found here: [http://calbot.patrikpapso.com/](http://calbot.patrikpapso.com/)
 
+If you wish to support me financially, you can do so via PayPal here: paypal.me/bluexow
+
 ## How to run the bot
 The bot runs on Python 3.7 and uses SQLite database to store data.
 All the required libraries can be found in file `requirements.txt`.
