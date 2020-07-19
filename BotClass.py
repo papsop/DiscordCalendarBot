@@ -118,6 +118,7 @@ class Bot:
                         calendar_events = self._calendarsManager.prepare_calendar_data(teamup_events, start_date, end_date, calendar["timezone"])
                     else:
                         # Can't fetch events from teamup, skip this calendar (maybe they deleted key)
+                        self.backend_log("periodic_update_calendars{events }", "can't fetch teamup data")
                         continue
 
                     #
