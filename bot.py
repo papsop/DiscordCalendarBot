@@ -1,11 +1,14 @@
 import config
-
+import logging
 import discord
+import asyncio
 from BotClass import Bot
 from commands.Help import Help
 from commands.GetStarted import GetStarted
 from commands.Setup import Setup
 from commands.Calendar import Calendar
+
+logging.basicConfig(level=logging.INFO)
 
 # Create instance of the bot
 print("=================================")
@@ -29,9 +32,10 @@ print("=================================")
 @bot._client.event
 async def on_ready():
     print("Bot user: {0.user}".format(bot._client))
-    # register periodic checks
-    bot._client.loop.create_task(bot.periodic_update_calendars())
-    bot._client.loop.create_task(bot.periodic_clean_db())
+    # start periodic check loop
+    # https://discordpy.readthedocs.io/en/latest/ext/tasks/index.html
+    bot.periodic_update_calendars.start()
+    bot.periodic_clean_db.start()
     # update bot's game status
     game = discord.Game("calbot.patrikpapso.com")
     await bot._client.change_presence(status=discord.Status.online, activity=game)
