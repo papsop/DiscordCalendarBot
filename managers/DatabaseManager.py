@@ -167,6 +167,7 @@ class DatabaseManager:
     def update_calendar_timestamp(self, calendar_id):
         if calendar_id == None:
             raise Exception("[DatabaseManager.get_calendar] Server_id or Calendar_id missing")
+
         cursor = self.get_cursor()
         try:
             row = cursor.execute("UPDATE calendar SET last_update=? WHERE ID=?;", (datetime.now(), calendar_id, ))
@@ -174,7 +175,7 @@ class DatabaseManager:
             cursor.close()
             raise e
         
-        cursor.commit()
+        self..commit()
         cursor.close()
         return row
 
