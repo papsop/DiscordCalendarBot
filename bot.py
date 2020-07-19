@@ -33,7 +33,7 @@ async def on_ready():
     bot._client.loop.create_task(bot.periodic_update_calendars())
     bot._client.loop.create_task(bot.periodic_clean_db())
     # update bot's game status
-    game = discord.Game("calendar.patrikpapso.com")
+    game = discord.Game("calbot.patrikpapso.com")
     await bot._client.change_presence(status=discord.Status.online, activity=game)
     print("=================================")
 
