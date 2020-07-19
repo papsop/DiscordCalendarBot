@@ -1,6 +1,6 @@
 config.py
 *.db
-
+*.db-journal
 .vscode
 # Environments
 .env
