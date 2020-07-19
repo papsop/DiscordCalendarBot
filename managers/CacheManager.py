@@ -43,15 +43,15 @@ class CacheManager:
     def insert_server(self, server_data):
         try:
             self._databaseManager.insert_server(server_data)
-        except:
-            raise
+        except Exception as e:
+            raise e
         self.reload_servers_cache()
 
     def update_server(self, server_data):
         try:
             self._databaseManager.update_server(server_data)
-        except:
-            raise
+        except Exception as e:
+            raise e
         self.reload_servers_cache()
 
     def update_calendar_num(self, server_id, new_num):
@@ -65,6 +65,6 @@ class CacheManager:
                 "calendars_max": server["calendars_max"]
             }
             self.update_server(new_server_data)
-        except:
-            raise
+        except Exception as e:
+            raise e
         self.reload_servers_cache()
