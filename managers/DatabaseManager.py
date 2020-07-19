@@ -173,7 +173,8 @@ class DatabaseManager:
         except Exception as e:
             cursor.close()
             raise e
-
+        
+        cursor.commit()
         cursor.close()
         return row
 
