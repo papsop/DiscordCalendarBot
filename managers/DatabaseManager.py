@@ -175,7 +175,7 @@ class DatabaseManager:
             cursor.close()
             raise e
         
-        self..commit()
+        self.commit()
         cursor.close()
         return row
 
