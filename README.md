@@ -6,6 +6,7 @@ If you wish to support me financially, you can do so via PayPal here: [paypal.me
 
 ## How to run the bot
 The bot runs on Python 3.7 and uses SQLite database to store data.
+- SQLite creates a file (name is based on `config.py`) and uses it as SQL database, so no need to install anything.
 All the required libraries can be found in file `requirements.txt`.
 
 To install all the required libraries run:
@@ -13,7 +14,7 @@ To install all the required libraries run:
 pip install -r requirements.txt
 ```
 
-Save `config_example.py` as `config.py` and will in all the tokens
+Save `config_example.py` as `config.py` and fill in all the tokens
 - Discord token from here: [https://discord.com/developers/applications](https://discord.com/developers/applications)
 - TeamUP token from here: [https://teamup.com/api-keys/request](https://teamup.com/api-keys/request)
 
