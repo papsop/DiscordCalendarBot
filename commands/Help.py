@@ -88,7 +88,7 @@ class Help(CommandBase):
                             },
                             {
                                 "name": "Name (required)",
-                                "value": """Name of settings you with to change, can be `timezone`, `timetype`, `datetype` or `reminder`.""",
+                                "value": """Name of settings you wish to change, can be `timezone`, `timetype`, `datetype` or `reminder`.""",
                                 "inline": False 
                             },
                             {
@@ -96,7 +96,7 @@ class Help(CommandBase):
                                 "value": """Value you want to change for given `Name`.
                                             For `timezone`: [LIST OF TIMEZONES](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)
                                             For `timetype`: `0` - 24hours, `1` - 12hours
-                                            For `datetype`: `0` - mm.dd.yyyy, `1` - dd/mm/yyyy
+                                            For `datetype`: `0` - dd.mm.yyyy, `1` - mm/dd/yyyy
                                             For `reminder`: number of **minutes** (not 100\% exact because of update times)""",
                                 "inline": False 
                             }
