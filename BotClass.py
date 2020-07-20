@@ -140,8 +140,7 @@ class Bot:
                                     if dm_channel == None:
                                         dm_channel = await user.create_dm()
                                     event["user"] = user
-                                    event["reminder_time"] = calendar["reminder_time"]
-                                    event["channel_id"] = calendar["channel_id"]
+                                    event["calendar_data"] = calendar
                                     reminder_embed = Embeds.create_reminder_embed(event)
                                     await dm_channel.send(content=".", embed=reminder_embed)
                                 except Exception as e:

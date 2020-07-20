@@ -1,6 +1,12 @@
 import discord
 from enum import Enum
 from datetime import datetime
+import re
+
+def cleanhtml(raw_html):
+  cleanr = re.compile('<.*?>')
+  cleantext = re.sub(cleanr, '', raw_html)
+  return cleantext
 
 class Embeds(object):
     
@@ -53,13 +59,38 @@ class Embeds(object):
         embed.set_footer(text="Bot by @BlueX_ow {0}".format(execution_time_str), icon_url="https://discord.com/assets/2c21aeda16de354ba5334551a883b481.png")
     
     @staticmethod
-    def create_reminder_embed(data):
+    def create_reminder_embed(event):
+        calendar = event["calendar_data"] 
         embed = discord.Embed()
         embed.timestamp = datetime.utcnow()
         embed.color = Embeds.color_info
-        embed.title = "Hey **{0.name}**!".format(data["user"])
-        embed.description = """There's an event with title **{0[title]}** happening in approximately {0[reminder_time]} minutes. Don't forget!
-                                You received this DM because you subscribed to a calendar in <#{0[channel_id]}>""".format(data)
+        embed.title = "Hey **{0.name}**!".format(event["user"])
+        embed.description = "This is a reminder from calendar in channel <#{0[channel_id]}>".format(calendar)
+
+        # date + time stuff
+        if calendar["datetype"] == 0:
+            date_fmt = "%d.%m.%Y"
+        else:
+            date_fmt = "%m/%d/%Y"
+        
+        if calendar["timetype"] == 0:
+            time_fmt = "%H:%M"
+        else:
+            time_fmt = "%I:%M%p"
+
+        time_start = event["start_dt"].strftime(time_fmt)
+        time_end = event["end_dt"].strftime(time_fmt)
+        day_string = "```asciidoc\n{0} - {1} -> {2}```".format(time_start, time_end, event["title"])  # to keep it consistent
+
+        embed.add_field(name="{0} ({1})".format(event["title"], event["start_dt"].strftime(date_fmt)), value=day_string)
+
+        if event["who"] != "":
+            embed.add_field(name="Who", value=event["who"], inline=False)
+        if event["notes"] != None: # notes default is null and it's HTML yikes
+            embed.add_field(name="Notes", value=cleanhtml(event["notes"]), inline=False)
+        if event["location"] != "":
+            embed.add_field(name="Location", value=event["location"], inline=False)
+
 
         Embeds.add_footer(embed, None)
         return embed
