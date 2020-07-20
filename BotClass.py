@@ -133,9 +133,9 @@ class Bot:
                             # skip reminded
                             if reminded_event != None:
                                 return
-
-                            try:
-                                for user in users_to_dm:
+     
+                            for user in users_to_dm:
+                                try:
                                     dm_channel = user.dm_channel
                                     if dm_channel == None:
                                         dm_channel = await user.create_dm()
@@ -144,8 +144,8 @@ class Bot:
                                     event["channel_id"] = calendar["channel_id"]
                                     reminder_embed = Embeds.create_reminder_embed(event)
                                     await dm_channel.send(content=".", embed=reminder_embed)
-                            except Exception as e:
-                                self.backend_log("periodic_update_calendars{reminding users}", str(e))
+                                except Exception as e:
+                                    self.backend_log("periodic_update_calendars{reminding users}", str(e))
 
                             # save that we reminded this one        
                             self._databaseManager.add_reminded_event(event["id"], event["version"])
