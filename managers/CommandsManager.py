@@ -17,13 +17,17 @@ class CommandsManager:
         print("  ✓ {0.activation_string} [{0.sub_commands}]".format(command))
 
     async def process_message(self, message):
-        # ignore messages without the prefix
+        # ignore direct messages
+        if message.guild == None:
+            return
+    
         server_data = self._cacheManager.get_server_cache(message.guild.id)
         if server_data != None:
             prefix = server_data["prefix"]
         else:
             prefix = self._defaultPrefix
-
+        
+        # ignore messages without the prefix
         if message.content[:len(prefix)] != prefix:
             return
         
