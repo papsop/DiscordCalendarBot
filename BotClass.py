@@ -73,16 +73,23 @@ class Bot:
                 # update timestamp for calendar
                 self._databaseManager.update_calendar_timestamp(calendar["ID"])
 
+                ########################################################
+                #   Issue connecting to discord deleted all calendars  #
+                #   so let's just skip them instead of deleting        #
+                ########################################################
+                if self._client == None:
+                    continue
+                
                 guild = self._client.get_guild(calendar["server_id"])
                 if guild == None:
                     # bot got kicked from the server -> delete server and all calendars
-                    self._databaseManager.delete_server(calendar["server_id"])
-                    self._cacheManager.reload_servers_cache()
+                    #self._databaseManager.delete_server(calendar["server_id"])
+                    #self._cacheManager.reload_servers_cache()
                     continue # obv skip
                 channel = guild.get_channel(calendar["channel_id"])
                 if channel == None:
                     # admin deleted this channel, let's delete all calendars with it
-                    self._databaseManager.delete_calendars_by_channel(calendar["channel_id"])
+                    #self._databaseManager.delete_calendars_by_channel(calendar["channel_id"])
                     continue # obv skip
 
                 try:
