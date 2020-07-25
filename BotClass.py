@@ -96,8 +96,8 @@ class Bot:
                     message = await channel.fetch_message(calendar["message_id"])
                 except Exception as e:
                     # can't find message, delete calendar
-                    self._databaseManager.delete_calendars_by_message(calendar["message_id"])
-                    continue
+                    # self._databaseManager.delete_calendars_by_message(calendar["message_id"])
+                    continue # obv skip
 
                 # save people to remind
                 users_to_dm = []
