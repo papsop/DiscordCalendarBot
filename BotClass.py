@@ -52,7 +52,7 @@ class Bot:
     async def periodic_clean_db(self):
         self._databaseManager.clean_reminded_events()
 
-    @tasks.loop(seconds=69)
+    @tasks.loop(seconds=100)
     async def periodic_update_calendars(self):
         # let's skip DatabaseManager and create custom query
         cursor = self._databaseManager.get_cursor()
@@ -68,9 +68,15 @@ class Bot:
         start_time = time.time()
         date_fmt = "%Y-%m-%d"
         logger.info("[{0}] updating {1} calendars.".format(datetime.now(), len(calendars)))
+        i = 0
         for calendar in calendars:
-            logger.debug("[{0}] CALENDAR:SERVERID: {1}".format(datetime.now(), calendar["server_id"]))
-            await asyncio.sleep(1)
+            # lets wait 30 seconds after every 10 calendars because of the f*cking rate limit
+            # losing my mind pt. 4
+            if i > 0 and i % 10 == 0:
+                logger.debug('[{0}] ===== WAITING FOR 30s =====')
+                await asyncio.sleep(30)
+
+            logger.debug("[{0}] [{1}] CALENDAR:SERVERID: {2}".format(datetime.now(), i, calendar["server_id"]))
             message = None
             try:
                 # update timestamp for calendar
@@ -82,7 +88,7 @@ class Bot:
                 ########################################################
                 if self._client == None:
                     continue
-                await asyncio.sleep(0.3)
+                await asyncio.sleep(0.25)
                 guild = self._client.get_guild(calendar["server_id"])
                 if guild == None:
                     # bot got kicked from the server -> delete server and all calendars
@@ -90,7 +96,7 @@ class Bot:
                     #self._cacheManager.reload_servers_cache()
                     continue # obv skip
                 logger.debug("\t GUILD FOUND")
-                await asyncio.sleep(0.3)
+                await asyncio.sleep(0.25)
                 channel = guild.get_channel(calendar["channel_id"])
                 if channel == None:
                     # admin deleted this channel, let's delete all calendars with it
@@ -98,7 +104,7 @@ class Bot:
                     continue # obv skip
                 logger.debug("\t CHANNEL FOUND")
                 try:
-                    await asyncio.sleep(0.3)
+                    await asyncio.sleep(0.25)
                     message = await channel.fetch_message(calendar["message_id"])
                 except Exception as e:
                     # can't find message, delete calendar
@@ -174,12 +180,14 @@ class Bot:
 
                 Embeds.add_footer(calendar_embed, None) 
                 if message != None:
-                    await asyncio.sleep(0.3)
+                    await asyncio.sleep(0.25)
                     await message.edit(content="...", embed=calendar_embed)
-                    await asyncio.sleep(0.3)
+                    await asyncio.sleep(0.25)
                     await message.add_reaction("🖐️") # in case admin removed reactions, add it back
             except Exception as e:
                 self.backend_log("periodic_update_calendars{for calendar}", str(e))
+            # for rate limit    
+            i = i+1
         # log every loop time
         loop_time = (time.time() - start_time)
         logger.info("[{0}] update took {1}s".format(datetime.now(), round(loop_time, 4)))
