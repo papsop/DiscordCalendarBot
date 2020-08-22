@@ -42,6 +42,18 @@ async def on_ready():
     print("=================================")
 
 @bot._client.event
+async def on_resumed():
+    print("Bot user: {0.user} RESUMED".format(bot._client))
+    # start periodic check loop
+    # https://discordpy.readthedocs.io/en/latest/ext/tasks/index.html
+    bot.periodic_update_calendars.start()
+    bot.periodic_clean_db.start()
+    # update bot's game status
+    game = discord.Game("calbot.patrikpapso.com")
+    await bot._client.change_presence(status=discord.Status.online, activity=game)
+    print("==========RESUMED==========")
+
+@bot._client.event
 async def on_message(message):
     if message.author != bot._client.user:
         await bot._commandsManager.process_message(message)
