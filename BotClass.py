@@ -59,7 +59,7 @@ class Bot:
         start_time = time.time()
 
         try:
-            time_4min_back = (datetime.now() - timedelta(minutes=0))
+            time_4min_back = (datetime.now() - timedelta(minutes=4))
             calendars = cursor.execute("SELECT * FROM calendar WHERE last_update <= ?;", (time_4min_back, )).fetchall()
         except Exception as e:
             cursor.close()
@@ -96,7 +96,6 @@ class Bot:
                 except Exception as e:
                     # admin deleted this channel, let's delete all calendars with it
                     #self._databaseManager.delete_calendars_by_channel(calendar["channel_id"])
-                    print(str(e))
                     continue # obv skip
                 logger.debug("\t CHANNEL FOUND")
                 try:
