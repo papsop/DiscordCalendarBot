@@ -28,7 +28,7 @@ class Bot:
     _statisticsManager = None
     
     def __init__(self):
-        self._client = discord.Client(heartbeat_timeout=120)
+        self._client = discord.Client(heartbeat_timeout=60, guild_subscriptions=False, fetch_offline_members=False)
         self._databaseManager = DatabaseManager(self)
         self._cacheManager = CacheManager(self)
         self._commandsManager = CommandsManager(self)
