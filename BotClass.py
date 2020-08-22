@@ -61,7 +61,7 @@ class Bot:
         channel_cache = dict()
 
         try:
-            time_4min_back = (datetime.now() - timedelta(minutes=0))
+            time_4min_back = (datetime.now() - timedelta(minutes=4))
             calendars = cursor.execute("SELECT * FROM calendar WHERE last_update <= ?;", (time_4min_back, )).fetchall()
         except Exception as e:
             cursor.close()
