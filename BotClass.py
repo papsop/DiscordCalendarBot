@@ -18,7 +18,7 @@ from discord.ext import tasks
 
 # logging stuff
 logger = logging.getLogger('calendar_bot')
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 
 class Bot:
     _client = None
@@ -59,7 +59,7 @@ class Bot:
         start_time = time.time()
 
         try:
-            time_4min_back = (datetime.now() - timedelta(minutes=4))
+            time_4min_back = (datetime.now() - timedelta(minutes=0))
             calendars = cursor.execute("SELECT * FROM calendar WHERE last_update <= ?;", (time_4min_back, )).fetchall()
         except Exception as e:
             cursor.close()
@@ -69,6 +69,7 @@ class Bot:
         date_fmt = "%Y-%m-%d"
         logger.info("[{0}] updating {1} calendars.".format(datetime.now(), len(calendars)))
         for calendar in calendars:
+            logger.debug("[{0}] CALENDAR_SERVERID: {1}".format(datetime.now(), calendar["server_id"]))
             await asyncio.sleep(1)
             message = None
             try:
@@ -88,13 +89,14 @@ class Bot:
                     #self._databaseManager.delete_server(calendar["server_id"])
                     #self._cacheManager.reload_servers_cache()
                     continue # obv skip
+                logger.debug("\t GUILD FOUND")
                 await asyncio.sleep(0.21)
                 channel = guild.get_channel(calendar["channel_id"])
                 if channel == None:
                     # admin deleted this channel, let's delete all calendars with it
                     #self._databaseManager.delete_calendars_by_channel(calendar["channel_id"])
                     continue # obv skip
-
+                logger.debug("\t CHANNEL FOUND")
                 try:
                     await asyncio.sleep(0.21)
                     message = await channel.fetch_message(calendar["message_id"])
@@ -102,6 +104,7 @@ class Bot:
                     # can't find message, delete calendar
                     # self._databaseManager.delete_calendars_by_message(calendar["message_id"])
                     continue # obv skip
+                logger.debug("\t MESSAGE FOUND")
 
                 # save people to remind
                 users_to_dm = []
@@ -110,7 +113,7 @@ class Bot:
                         async for user in reaction.users():
                             if user != self._client.user:
                                 users_to_dm.append(user)
-
+                logger.debug("\t {0} USERS FOUND".format(len(users_to_dm)))
                 # do teamup magic
                 calendar_tz = pytz.timezone(calendar["timezone"])
                 calendar_now = datetime.now().astimezone(calendar_tz)
@@ -146,6 +149,7 @@ class Bot:
                                 return
      
                             for user in users_to_dm:
+                                logger.debug("\t\t SENDING DM".format(users_to_dm))
                                 await asyncio.sleep(0.21)
                                 try:
                                     dm_channel = user.dm_channel
