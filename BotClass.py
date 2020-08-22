@@ -72,10 +72,6 @@ class Bot:
         logger.info("[{0}] updating {1} calendars.".format(datetime.now(), len(calendars)))
         i = 0
         for calendar in calendars:
-            #remove this skip
-            if calendar["server_id"] == 697496797240623315:
-                continue
-
             # lets wait 15 seconds after every 10 calendars because of the f*cking rate limit
             # losing my mind pt. 4
             if i > 0 and i % 10 == 0:
