@@ -75,7 +75,7 @@ class Bot:
             if i > 0 and i % 10 == 0:
                 logger.debug('[{0}] ===== WAITING FOR 30s ====='.format(datetime.now()))
                 await asyncio.sleep(30)
-                
+
             logger.debug("[{0}] [{1}] CALENDAR:SERVERID: {2}".format(datetime.now(), i, calendar["server_id"]))
             # increment now in case we 'continue' the loop
             i = i + 1
@@ -91,8 +91,10 @@ class Bot:
                 if self._client == None:
                     continue
                 await asyncio.sleep(0.25)
-                guild = self._client.get_guild(calendar["server_id"])
-                if guild == None:
+                try:
+                    await asyncio.sleep(0.25)
+                guild = await self._client.fetch_guild(calendar["server_id"])
+                except Exception as e:
                     # bot got kicked from the server -> delete server and all calendars
                     #self._databaseManager.delete_server(calendar["server_id"])
                     #self._cacheManager.reload_servers_cache()
