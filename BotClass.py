@@ -43,7 +43,7 @@ class Bot:
     
     def backend_log(self, source, msg):
         err_str = "[{0} - {1}] {2}".format(source, datetime.now(), msg) 
-        print(err_str)
+        logger.debug(err_str)
 
     # =======================
     #    PERIODIC CHECKING
@@ -57,9 +57,11 @@ class Bot:
         # let's skip DatabaseManager and create custom query
         cursor = self._databaseManager.get_cursor()
         start_time = time.time()
+        # i dont even know what I'm trying to accomplish
+        channel_cache = dict()
 
         try:
-            time_4min_back = (datetime.now() - timedelta(minutes=4))
+            time_4min_back = (datetime.now() - timedelta(minutes=0))
             calendars = cursor.execute("SELECT * FROM calendar WHERE last_update <= ?;", (time_4min_back, )).fetchall()
         except Exception as e:
             cursor.close()
@@ -94,14 +96,19 @@ class Bot:
                 ########################################################
                 if self._client == None:
                     continue
-                try:
-                    await asyncio.sleep(0.25)
-                    channel = await self._client.fetch_channel(calendar["channel_id"])
-                except Exception as e:
-                    # admin deleted this channel, let's delete all calendars with it
-                    #self._databaseManager.delete_calendars_by_channel(calendar["channel_id"])
-                    continue # obv skip
-                logger.debug("\t CHANNEL FOUND")
+                if calendar["channel_id"] not in channel_cache:
+                    try:
+                        await asyncio.sleep(0.25)
+                        channel_cache[calendar["channel_id"]] = await self._client.fetch_channel(calendar["channel_id"])
+                        logger.debug('\t ADDED CACHED CHANNEL')
+                    except Exception as e:
+                        # admin deleted this channel, let's delete all calendars with it
+                        #self._databaseManager.delete_calendars_by_channel(calendar["channel_id"])
+                        continue # obv skip
+                else:
+                    logger.debug('\t USED CACHED CHANNEL')
+
+                channel = channel_cache[calendar["channel_id"]]
                 try:
                     await asyncio.sleep(0.25)
                     message = await channel.fetch_message(calendar["message_id"])
