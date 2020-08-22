@@ -70,11 +70,15 @@ class Bot:
         logger.info("[{0}] updating {1} calendars.".format(datetime.now(), len(calendars)))
         i = 0
         for calendar in calendars:
-            # lets wait 30 seconds after every 10 calendars because of the f*cking rate limit
+            #remove this skip
+            if calendar["server_id"] == 697496797240623315:
+                continue
+
+            # lets wait 15 seconds after every 10 calendars because of the f*cking rate limit
             # losing my mind pt. 4
             if i > 0 and i % 10 == 0:
-                logger.debug('[{0}] ===== WAITING FOR 30s ====='.format(datetime.now()))
-                await asyncio.sleep(30)
+                logger.debug('[{0}] ===== WAITING FOR 15s ====='.format(datetime.now()))
+                await asyncio.sleep(15)
 
             logger.debug("[{0}] [{1}] CALENDAR:SERVERID: {2}".format(datetime.now(), i, calendar["server_id"]))
             # increment now in case we 'continue' the loop
@@ -156,6 +160,7 @@ class Bot:
                                     dm_channel = user.dm_channel
                                     if dm_channel == None:
                                         dm_channel = await user.create_dm()
+                                        await asyncio.sleep(0.3)
                                     event["user"] = user
                                     event["calendar_data"] = calendar
                                     reminder_embed = Embeds.create_reminder_embed(event)
@@ -175,9 +180,10 @@ class Bot:
 
                 Embeds.add_footer(calendar_embed, None) 
                 if message != None:
-                    await asyncio.sleep(0.25)
+                    await asyncio.sleep(4.5)
+                    logger.debug("\t UPDATING MESSAGE")
                     await message.edit(content="...", embed=calendar_embed)
-                    await asyncio.sleep(0.25)
+                    await asyncio.sleep(2)
                     await message.add_reaction("🖐️") # in case admin removed reactions, add it back
             except Exception as e:
                 self.backend_log("periodic_update_calendars{for calendar}", str(e))
