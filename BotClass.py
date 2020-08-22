@@ -69,6 +69,7 @@ class Bot:
         date_fmt = "%Y-%m-%d"
         logger.info("[{0}] updating {1} calendars.".format(datetime.now(), len(calendars)))
         for calendar in calendars:
+            await asyncio.sleep(1)
             message = None
             try:
                 # update timestamp for calendar
@@ -145,6 +146,7 @@ class Bot:
                                 return
      
                             for user in users_to_dm:
+                                await asyncio.sleep(0.21)
                                 try:
                                     dm_channel = user.dm_channel
                                     if dm_channel == None:
@@ -173,7 +175,6 @@ class Bot:
                     await message.add_reaction("🖐️") # in case admin removed reactions, add it back
             except Exception as e:
                 self.backend_log("periodic_update_calendars{for calendar}", str(e))
-            await asyncio.sleep(1)
         # log every loop time
         loop_time = (time.time() - start_time)
         logger.info("[{0}] update took {1}s".format(datetime.now(), round(loop_time, 4)))
