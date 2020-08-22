@@ -82,7 +82,7 @@ class Bot:
                 ########################################################
                 if self._client == None:
                     continue
-                await asyncio.sleep(0.21)
+                await asyncio.sleep(0.3)
                 guild = self._client.get_guild(calendar["server_id"])
                 if guild == None:
                     # bot got kicked from the server -> delete server and all calendars
@@ -90,7 +90,7 @@ class Bot:
                     #self._cacheManager.reload_servers_cache()
                     continue # obv skip
                 logger.debug("\t GUILD FOUND")
-                await asyncio.sleep(0.21)
+                await asyncio.sleep(0.3)
                 channel = guild.get_channel(calendar["channel_id"])
                 if channel == None:
                     # admin deleted this channel, let's delete all calendars with it
@@ -98,7 +98,7 @@ class Bot:
                     continue # obv skip
                 logger.debug("\t CHANNEL FOUND")
                 try:
-                    await asyncio.sleep(0.21)
+                    await asyncio.sleep(0.3)
                     message = await channel.fetch_message(calendar["message_id"])
                 except Exception as e:
                     # can't find message, delete calendar
@@ -150,7 +150,7 @@ class Bot:
      
                             for user in users_to_dm:
                                 logger.debug("\t\t SENDING DM".format(users_to_dm))
-                                await asyncio.sleep(0.21)
+                                await asyncio.sleep(0.3)
                                 try:
                                     dm_channel = user.dm_channel
                                     if dm_channel == None:
@@ -174,7 +174,7 @@ class Bot:
 
                 Embeds.add_footer(calendar_embed, None) 
                 if message != None:
-                    await asyncio.sleep(0.21)
+                    await asyncio.sleep(0.3)
                     await message.edit(content="...", embed=calendar_embed)
                     await message.add_reaction("🖐️") # in case admin removed reactions, add it back
             except Exception as e:
