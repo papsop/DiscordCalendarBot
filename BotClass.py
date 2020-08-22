@@ -93,6 +93,7 @@ class Bot:
                     continue # obv skip
 
                 try:
+                    await asyncio.sleep(0.21)
                     message = await channel.fetch_message(calendar["message_id"])
                 except Exception as e:
                     # can't find message, delete calendar
@@ -165,6 +166,7 @@ class Bot:
 
                 Embeds.add_footer(calendar_embed, None) 
                 if message != None:
+                    await asyncio.sleep(0.21)
                     await message.edit(content="...", embed=calendar_embed)
                     await message.add_reaction("🖐️") # in case admin removed reactions, add it back
             except Exception as e:
