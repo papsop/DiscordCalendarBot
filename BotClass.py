@@ -59,7 +59,7 @@ class Bot:
         start_time = time.time()
 
         try:
-            time_4min_back = (datetime.now() - timedelta(minutes=0))
+            time_4min_back = (datetime.now() - timedelta(minutes=4))
             calendars = cursor.execute("SELECT * FROM calendar WHERE last_update <= ?;", (time_4min_back, )).fetchall()
         except Exception as e:
             cursor.close()
@@ -69,7 +69,7 @@ class Bot:
         date_fmt = "%Y-%m-%d"
         logger.info("[{0}] updating {1} calendars.".format(datetime.now(), len(calendars)))
         for calendar in calendars:
-            logger.debug("[{0}] CALENDAR_SERVERID: {1}".format(datetime.now(), calendar["server_id"]))
+            logger.debug("[{0}] CALENDAR:SERVERID: {1}".format(datetime.now(), calendar["server_id"]))
             await asyncio.sleep(1)
             message = None
             try:
@@ -176,6 +176,7 @@ class Bot:
                 if message != None:
                     await asyncio.sleep(0.3)
                     await message.edit(content="...", embed=calendar_embed)
+                    await asyncio.sleep(0.3)
                     await message.add_reaction("🖐️") # in case admin removed reactions, add it back
             except Exception as e:
                 self.backend_log("periodic_update_calendars{for calendar}", str(e))
