@@ -143,7 +143,7 @@ class CalendarsManager:
         start_date = calendar_now
         end_date = start_date + timedelta(days=7)
 
-        teamup_events = self._teamupManager.get_calendar_events(calendar["teamup_calendar_key"], start_date.strftime(date_fmt), end_date.strftime(date_fmt), calendar["timezone"], None)
+        teamup_events = await self._teamupManager.get_calendar_events(calendar["teamup_calendar_key"], start_date.strftime(date_fmt), end_date.strftime(date_fmt), calendar["timezone"], None)
         calendar_events = self.prepare_calendar_data(teamup_events, start_date, end_date, calendar["timezone"])
 
         events_data = {

@@ -128,7 +128,7 @@ class Calendar(CommandBase):
 
         # checking if the teamup calendar key is functional
         calendar_key = args[3]
-        calendar_configuration = self._bot._teamupManager.get_calendar_config(calendar_key)
+        calendar_configuration = await self._bot._teamupManager.get_calendar_config(calendar_key)
         if calendar_configuration['status_code'] != 200:
             return {
                 "embed": {

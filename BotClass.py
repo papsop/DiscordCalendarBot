@@ -52,15 +52,15 @@ class Bot:
     async def periodic_clean_db(self):
         self._databaseManager.clean_reminded_events()
 
-    @tasks.loop(seconds=45)
+    @tasks.loop(seconds=69)
     async def periodic_update_calendars(self):
         # let's skip DatabaseManager and create custom query
         cursor = self._databaseManager.get_cursor()
         start_time = time.time()
 
         try:
-            time_3min_back = (datetime.now() - timedelta(minutes=5))
-            calendars = cursor.execute("SELECT * FROM calendar WHERE last_update <= ?;", (time_3min_back, )).fetchall()
+            time_4min_back = (datetime.now() - timedelta(minutes=4))
+            calendars = cursor.execute("SELECT * FROM calendar WHERE last_update <= ?;", (time_4min_back, )).fetchall()
         except Exception as e:
             cursor.close()
             self.backend_log("periodic_update_calendars", str(e))
@@ -114,7 +114,7 @@ class Bot:
                 start_date = calendar_now
                 end_date = start_date + timedelta(days=7)
 
-                teamup_events = self._teamupManager.get_calendar_events(calendar["teamup_calendar_key"], start_date.strftime(date_fmt), end_date.strftime(date_fmt), calendar["timezone"], None)
+                teamup_events = await self._teamupManager.get_calendar_events(calendar["teamup_calendar_key"], start_date.strftime(date_fmt), end_date.strftime(date_fmt), calendar["timezone"], None)
                 
                 if teamup_events != None:
                     calendar_events = self._calendarsManager.prepare_calendar_data(teamup_events, start_date, end_date, calendar["timezone"])

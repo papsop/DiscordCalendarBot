@@ -1,5 +1,6 @@
-import requests
 import time
+import requests
+import aiohttp
 
 class TeamupManager:
     _databaseManager = None
@@ -23,18 +24,19 @@ class TeamupManager:
         else:
             raise Exception("Invalid TeamUP token, use https://apidocs.teamup.com/ a reference OR problem with TeamUP API")
     
-    def get_calendar_config(self, calendar_key):
+    async def get_calendar_config(self, calendar_key):
         url = self._base + "/{0}/configuration".format(calendar_key)
-        r = requests.get(url, headers=self._headers)
-        return {
-            'status_code': r.status_code,
-            'data': r.json()
-        }
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, headers=self._headers) as r:
+                return {
+                    'status_code': r.status,
+                    'data': await r.json()
+                }
     
-    def get_calendar_events(self, calendar_key, start_date, end_date, timezone, filters):
+    async def get_calendar_events(self, calendar_key, start_date, end_date, timezone, filters):
         url = self._base + "/{0}/events?tz={1}&startDate={2}&endDate={3}".format(calendar_key, timezone, start_date, end_date)
-        r = requests.get(url, headers=self._headers)
-        if r.status_code == 200:
-            return r.json()["events"]
-        else:
-            return None
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, headers=self._headers) as r:
+                if r.status == 200:
+                    data = await r.json()
+                    return data['events']
