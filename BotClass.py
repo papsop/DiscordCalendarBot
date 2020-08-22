@@ -59,7 +59,7 @@ class Bot:
         start_time = time.time()
 
         try:
-            time_4min_back = (datetime.now() - timedelta(minutes=4))
+            time_4min_back = (datetime.now() - timedelta(minutes=0))
             calendars = cursor.execute("SELECT * FROM calendar WHERE last_update <= ?;", (time_4min_back, )).fetchall()
         except Exception as e:
             cursor.close()
@@ -90,21 +90,13 @@ class Bot:
                 ########################################################
                 if self._client == None:
                     continue
-                await asyncio.sleep(0.25)
                 try:
                     await asyncio.sleep(0.25)
-                guild = await self._client.fetch_guild(calendar["server_id"])
+                    channel = await self._client.fetch_channel(calendar["channel_id"])
                 except Exception as e:
-                    # bot got kicked from the server -> delete server and all calendars
-                    #self._databaseManager.delete_server(calendar["server_id"])
-                    #self._cacheManager.reload_servers_cache()
-                    continue # obv skip
-                logger.debug("\t GUILD FOUND")
-                await asyncio.sleep(0.25)
-                channel = guild.get_channel(calendar["channel_id"])
-                if channel == None:
                     # admin deleted this channel, let's delete all calendars with it
                     #self._databaseManager.delete_calendars_by_channel(calendar["channel_id"])
+                    print(str(e))
                     continue # obv skip
                 logger.debug("\t CHANNEL FOUND")
                 try:
