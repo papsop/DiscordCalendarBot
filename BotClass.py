@@ -73,10 +73,12 @@ class Bot:
             # lets wait 30 seconds after every 10 calendars because of the f*cking rate limit
             # losing my mind pt. 4
             if i > 0 and i % 10 == 0:
-                logger.debug('[{0}] ===== WAITING FOR 30s =====')
+                logger.debug('[{0}] ===== WAITING FOR 30s ====='.format(datetime.now()))
                 await asyncio.sleep(30)
-
+                
             logger.debug("[{0}] [{1}] CALENDAR:SERVERID: {2}".format(datetime.now(), i, calendar["server_id"]))
+            # increment now in case we 'continue' the loop
+            i = i + 1
             message = None
             try:
                 # update timestamp for calendar
@@ -186,8 +188,6 @@ class Bot:
                     await message.add_reaction("🖐️") # in case admin removed reactions, add it back
             except Exception as e:
                 self.backend_log("periodic_update_calendars{for calendar}", str(e))
-            # for rate limit    
-            i = i+1
         # log every loop time
         loop_time = (time.time() - start_time)
         logger.info("[{0}] update took {1}s".format(datetime.now(), round(loop_time, 4)))
