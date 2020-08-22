@@ -18,7 +18,7 @@ from discord.ext import tasks
 
 # logging stuff
 logger = logging.getLogger('calendar_bot')
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 class Bot:
     _client = None
@@ -67,6 +67,7 @@ class Bot:
         cursor.close()
         start_time = time.time()
         date_fmt = "%Y-%m-%d"
+        logger.info("[{0}] updating {1} calendars.".format(datetime.now(), len(calendars)))
         for calendar in calendars:
             message = None
             try:
