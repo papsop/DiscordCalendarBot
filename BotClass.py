@@ -72,10 +72,10 @@ class Bot:
         logger.info("[{0}] updating {1} calendars.".format(datetime.now(), len(calendars)))
         i = 0
         for calendar in calendars:
-            # lets wait 15 seconds after every 10 calendars because of the f*cking rate limit
+            # lets wait 30 seconds after every 10 calendars because of the f*cking rate limit
             # losing my mind pt. 4
             if i > 0 and i % 10 == 0:
-                logger.debug('[{0}] ===== WAITING FOR 15s ====='.format(datetime.now()))
+                logger.debug('[{0}] ===== WAITING FOR 30s ====='.format(datetime.now()))
                 await asyncio.sleep(15)
 
             logger.debug("[{0}] [{1}] CALENDAR:SERVERID: {2}".format(datetime.now(), i, calendar["server_id"]))
@@ -100,20 +100,32 @@ class Bot:
                     except Exception as e:
                         # admin deleted this channel, let's delete all calendars with it
                         #self._databaseManager.delete_calendars_by_channel(calendar["channel_id"])
+                        #logger.debug("\t DELETE BY CHANNEL")
                         continue # obv skip
                 else:
                     logger.debug('\t USED CACHED CHANNEL')
 
                 channel = channel_cache[calendar["channel_id"]]
+
+                if channel == None:
+                    logger.debug("\t skipping by channel")
+                    continue
+
                 try:
                     await asyncio.sleep(0.25)
                     message = await channel.fetch_message(calendar["message_id"])
                 except Exception as e:
                     # can't find message, delete calendar
-                    # self._databaseManager.delete_calendars_by_message(calendar["message_id"])
+                    #self._databaseManager.delete_calendars_by_message(calendar["message_id"])
+                    #logger.debug("\t DELETE BY MESSAGE")
                     continue # obv skip
-                logger.debug("\t MESSAGE FOUND")
 
+                if message == None:
+                    logger.debug("\t skipping by message")
+                    continue
+                
+                logger.debug("\t MESSAGE FOUND")
+            
                 # save people to remind
                 users_to_dm = []
                 for reaction in message.reactions:
