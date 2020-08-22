@@ -80,13 +80,14 @@ class Bot:
                 ########################################################
                 if self._client == None:
                     continue
-                
+                await asyncio.sleep(0.21)
                 guild = self._client.get_guild(calendar["server_id"])
                 if guild == None:
                     # bot got kicked from the server -> delete server and all calendars
                     #self._databaseManager.delete_server(calendar["server_id"])
                     #self._cacheManager.reload_servers_cache()
                     continue # obv skip
+                await asyncio.sleep(0.21)
                 channel = guild.get_channel(calendar["channel_id"])
                 if channel == None:
                     # admin deleted this channel, let's delete all calendars with it
