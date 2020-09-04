@@ -40,7 +40,7 @@ class GetStarted(CommandBase):
                         },
                         {
                             "name": "Step 4",
-                            "value": "Now all the events from TeamUP calendar will be synced to this calendar (update happens every couple of minutes), you can change some settings (timezone, timetype, datetype, reminder time). More info `{0}}help calendar`.".format(server_prefix),
+                            "value": "Now all the events from TeamUP calendar will be synced to this calendar (update happens every couple of minutes), you can change some settings (timezone, timetype, datetype, reminder time). More info `{0}help calendar`.".format(server_prefix),
                             "inline": False
                         },
                         {
