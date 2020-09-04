@@ -31,16 +31,16 @@ class GetStarted(CommandBase):
                         },
                         {
                             "name": "Step 3",
-                            "value": """Create a bot calendar using command `[prefix]calendar add [timezone] [teamup-calendar-key] [channel-id]`. 
+                            "value": """Create a bot calendar using command `{0}calendar add [timezone] [teamup-calendar-key] [channel-id]`. 
                             Timezone has to be from this [LIST](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones).
                             `Teamup-calendar-key` is located right after http://teamup.com/ url. Example: `kszgdz94t6wycfcfvc`.
                             You can either specify your own channel (right-click on channel -> copy ID) or bot will create a channel for you (requires bot to have discord admin permissions).
-                            More info `[prefix]help calendar`.""",
+                            More info `{0}help calendar`.""".format(server_prefix),
                             "inline": False
                         },
                         {
                             "name": "Step 4",
-                            "value": "Now all the events from TeamUP calendar will be synced to this calendar (update happens every couple of minutes), you can change some settings (timezone, timetype, datetype, reminder time). More info `[prefix]help calendar`.",
+                            "value": "Now all the events from TeamUP calendar will be synced to this calendar (update happens every couple of minutes), you can change some settings (timezone, timetype, datetype, reminder time). More info `{0}}help calendar`.".format(server_prefix),
                             "inline": False
                         },
                         {
