@@ -155,4 +155,4 @@ class CalendarsManager:
         
         Embeds.add_footer(calendar_embed, None)
 
-        await message.edit(content="...", embed=calendar_embed)
+        await message.edit(content="", embed=calendar_embed)

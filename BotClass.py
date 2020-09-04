@@ -18,7 +18,7 @@ from discord.ext import tasks
 
 # logging stuff
 logger = logging.getLogger('calendar_bot')
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 class Bot:
     _client = None
@@ -60,9 +60,15 @@ class Bot:
         # i dont even know what I'm trying to accomplish
         channel_cache = dict()
 
+        # Filtering servers/calendars goes like this, after successful update it saves timestamp with variation
+        # if bot can't reach server/channel/message/teamup and timestamp hasn't been updated for 2 days
+        # - if server unreachable -> delete server + all calendars
+        # - if message/teamup unreachable -> delete given calendar
+        # - if channel unreachable -> delete all calendars in this channel
+
         try:
-            time_4min_back = (datetime.now() - timedelta(minutes=4))
-            calendars = cursor.execute("SELECT * FROM calendar WHERE last_update <= ?;", (time_4min_back, )).fetchall()
+            time_7min_back = (datetime.now() - timedelta(minutes=7))
+            calendars = cursor.execute("SELECT * FROM calendar WHERE last_update <= ? AND is_alive=1;", (time_7min_back, )).fetchall()
         except Exception as e:
             cursor.close()
             self.backend_log("periodic_update_calendars", str(e))
@@ -72,35 +78,36 @@ class Bot:
         logger.info("[{0}] updating {1} calendars.".format(datetime.now(), len(calendars)))
         i = 0
         for calendar in calendars:
-            # lets wait 30 seconds after every 10 calendars because of the f*cking rate limit
+            # lets wait 15 seconds after every 10 calendars because of the f*cking rate limit
             # losing my mind pt. 4
             if i > 0 and i % 10 == 0:
-                logger.debug('[{0}] ===== WAITING FOR 30s ====='.format(datetime.now()))
+                logger.debug('[{0}] ===== WAITING FOR 15s ====='.format(datetime.now()))
                 await asyncio.sleep(15)
 
-            logger.debug("[{0}] [{1}] CALENDAR:SERVERID: {2}".format(datetime.now(), i, calendar["server_id"]))
+            logger.debug("[{0}] [{1}] CALENDAR:SERVERID: {2}:{3}".format(datetime.now(), i, calendar["ID"], calendar["server_id"]))
+            # Let's check if this calendar is a boomer
+            lup_dt = datetime.strptime(calendar["last_update"], '%Y-%m-%d %H:%M:%S.%f')
+            last_update_hours = (datetime.now() - lup_dt).total_seconds() / 60.0 / 60.0
+            calendar_old = False
+            if last_update_hours >= 48:
+                calendar_old = True
+
             # increment now in case we 'continue' the loop
             i = i + 1
             message = None
             try:
-                # update timestamp for calendar
-                self._databaseManager.update_calendar_timestamp(calendar["ID"])
-
-                ########################################################
-                #   Issue connecting to discord deleted all calendars  #
-                #   so let's just skip them instead of deleting        #
-                ########################################################
                 if self._client == None:
                     continue
+
                 if calendar["channel_id"] not in channel_cache:
                     try:
-                        await asyncio.sleep(0.25)
                         channel_cache[calendar["channel_id"]] = await self._client.fetch_channel(calendar["channel_id"])
                         logger.debug('\t ADDED CACHED CHANNEL')
                     except Exception as e:
                         # admin deleted this channel, let's delete all calendars with it
-                        #self._databaseManager.delete_calendars_by_channel(calendar["channel_id"])
-                        #logger.debug("\t DELETE BY CHANNEL")
+                        if calendar_old:
+                            self._databaseManager.delete_calendars_by_channel(calendar["channel_id"])
+                        logger.debug("\t DELETE BY CHANNEL")
                         continue # obv skip
                 else:
                     logger.debug('\t USED CACHED CHANNEL')
@@ -108,20 +115,24 @@ class Bot:
                 channel = channel_cache[calendar["channel_id"]]
 
                 if channel == None:
-                    logger.debug("\t skipping by channel")
+                    if calendar_old:
+                        self._databaseManager.delete_calendars_by_channel(calendar["channel_id"])
+                    logger.debug("\t DELETE BY CHANNEL")
                     continue
 
                 try:
-                    await asyncio.sleep(0.25)
                     message = await channel.fetch_message(calendar["message_id"])
                 except Exception as e:
                     # can't find message, delete calendar
-                    #self._databaseManager.delete_calendars_by_message(calendar["message_id"])
-                    #logger.debug("\t DELETE BY MESSAGE")
+                    if calendar_old:
+                        self._databaseManager.delete_calendars_by_message(calendar["message_id"])
+                    logger.debug("\t DELETE BY MESSAGE")
                     continue # obv skip
 
                 if message == None:
-                    logger.debug("\t skipping by message")
+                    if calendar_old:
+                        self._databaseManager.delete_calendars_by_message(calendar["message_id"])
+                    logger.debug("\t DELETE BY MESSAGE")
                     continue
                 
                 logger.debug("\t MESSAGE FOUND")
@@ -137,7 +148,6 @@ class Bot:
                 # do teamup magic
                 calendar_tz = pytz.timezone(calendar["timezone"])
                 calendar_now = datetime.now().astimezone(calendar_tz)
-
                 start_date = calendar_now
                 end_date = start_date + timedelta(days=7)
 
@@ -149,6 +159,13 @@ class Bot:
                     # Can't fetch events from teamup, skip this calendar (maybe they deleted key)
                     self.backend_log("periodic_update_calendars{events }", "can't fetch teamup data")
                     continue
+
+                
+                # update timestamp for calendar
+                # Let's add some random variation to spread number of calendars updating every loop
+                # time will tell if it helped
+                variation = random.randint(0, 90)
+                self._databaseManager.update_calendar_timestamp(calendar["ID"], variation)
 
                 #
                 # HANDLING REMINDERS
@@ -179,7 +196,7 @@ class Bot:
                                     event["user"] = user
                                     event["calendar_data"] = calendar
                                     reminder_embed = Embeds.create_reminder_embed(event)
-                                    await dm_channel.send(content=".", embed=reminder_embed)
+                                    await dm_channel.send(content="", embed=reminder_embed)
                                 except Exception as e:
                                     self.backend_log("periodic_update_calendars{reminding users}", str(e))
 
@@ -195,10 +212,9 @@ class Bot:
 
                 Embeds.add_footer(calendar_embed, None) 
                 if message != None:
-                    await asyncio.sleep(4.5)
-                    logger.debug("\t UPDATING MESSAGE")
-                    await message.edit(content="...", embed=calendar_embed)
                     await asyncio.sleep(2)
+                    logger.debug("\t UPDATING MESSAGE")
+                    await message.edit(content="", embed=calendar_embed)
                     await message.add_reaction("🖐️") # in case admin removed reactions, add it back
             except Exception as e:
                 self.backend_log("periodic_update_calendars{for calendar}", str(e))

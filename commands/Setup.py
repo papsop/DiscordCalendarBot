@@ -17,7 +17,7 @@ class Setup(CommandBase):
         self.sub_commands = "setup"
         self._bot = self._commandsManager._bot
     
-    async def action(self, message):
+    async def action(self, message, server_prefix):
         args = message.content.split(' ')
         admin_id = None
         is_admin_user = None
@@ -27,7 +27,7 @@ class Setup(CommandBase):
                 "embed": {
                     "type": "ERROR",
                     "title": "An error has occured",
-                    "description": "This command requires 2 or 3 parameters, use `[prefix]help setup`"
+                    "description": "This command requires 2 or 3 parameters, use `{0}help setup`".format(server_prefix)
                 }
             }
         
@@ -35,7 +35,7 @@ class Setup(CommandBase):
             is_admin_user = True
             admin_id = message.author.id
         
-        if len(args) == 3: # TODO: implement role
+        if len(args) == 3:
             # can be either user_mention, role mention or everyone mention
             if len(message.mentions) > 0:
                 is_admin_user = True
@@ -46,6 +46,15 @@ class Setup(CommandBase):
             if message.mention_everyone: # can be @everyone or @here
                 is_admin_user = False
                 admin_id = 0
+
+        if len(args[1]) > 3:
+            return {
+                "embed": {
+                    "type": "ERROR",
+                    "title": "An error has occured",
+                    "description": "Maximum length of custom prefix is 3 characters, your input: **{0}**.".format(args[1])
+                }
+            }
 
         # create obj for database
         server_data = { 

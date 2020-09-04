@@ -9,5 +9,5 @@ class CommandBase:
     def __init__(self):
         pass
 
-    async def action(self):
+    async def action(self, server_prefix):
         raise NotImplementedError

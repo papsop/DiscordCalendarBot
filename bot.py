@@ -7,6 +7,7 @@ from commands.Help import Help
 from commands.GetStarted import GetStarted
 from commands.Setup import Setup
 from commands.Calendar import Calendar
+from commands.ServerInfo import ServerInfo
 
 logging.basicConfig(level=logging.INFO)
 
@@ -20,10 +21,11 @@ print("=================================")
 #   Register commands
 # =====================
 print("Successfully registered commands:")
+bot._commandsManager.register_static_command( Setup )
+bot._commandsManager.register_static_command( ServerInfo )
 bot._commandsManager.register_command( Help )
-bot._commandsManager.register_command( Setup )
-bot._commandsManager.register_command( Calendar )
 bot._commandsManager.register_command( GetStarted )
+bot._commandsManager.register_command( Calendar )
 print("=================================")
 
 # ==================

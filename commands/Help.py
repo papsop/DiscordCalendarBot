@@ -10,7 +10,7 @@ class Help(CommandBase):
         self.activation_string = "help"
         self.sub_commands = "help"
     
-    async def action(self, message):
+    async def action(self, message, server_prefix):
         """
             [prefix]help [command]
         """
@@ -21,7 +21,7 @@ class Help(CommandBase):
                 "embed": {
                     "type": "ERROR",
                     "title": "An error has occured",
-                    "description": "Please specify a command after `[prefix]help` (f.e. `!help calendar`)"
+                    "description": "Please specify a command after `{0}help` (f.e. `{0}help calendar`)".format(server_prefix)
                 }
             }
 
@@ -58,7 +58,7 @@ class Help(CommandBase):
                         "fields": [
                             {
                                 "name": "===== ADD PARAMETERS =====",
-                                "value": """`[prefix]calendar add [timezone] [teamup-calendar-key] [calendar-channel-id]` - used to create a calendar""",
+                                "value": """`{0}calendar add [timezone] [teamup-calendar-key] [calendar-channel-id]` - used to create a calendar""".format(server_prefix),
                                 "inline": False 
                             },
                             {
@@ -78,7 +78,7 @@ class Help(CommandBase):
                             },
                             {
                                 "name": "===== SET PARAMETERS =====",
-                                "value": """`[prefix]calendar set [calendar-id] [name] [value]` - used to change calendar settings""",
+                                "value": """`{0}calendar set [calendar-id] [name] [value]` - used to change calendar settings""".format(server_prefix),
                                 "inline": False 
                             },
                             {
@@ -108,6 +108,6 @@ class Help(CommandBase):
             "embed": {
                 "type": "ERROR",
                 "title": "An error has occured",
-                "description": "Please specify a command after `[prefix]help` (f.e. `!help calendar`)"
+                "description": "Please specify a command after `{0}help` (f.e. `!help calendar`)".format(server_prefix)
             }
         }

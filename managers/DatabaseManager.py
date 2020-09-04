@@ -18,7 +18,8 @@ class DatabaseManager:
     def __init__(self, bot):
         self._bot = bot
         self._dbname = config.database['file_name']
-        self._connnection = sqlite3.connect(self._dbname)
+        self._connnection = sqlite3.connect(self._dbname, detect_types=sqlite3.PARSE_DECLTYPES |
+                                           sqlite3.PARSE_COLNAMES)
         self._connnection.row_factory = dict_factory
         print("✓ DatabaseManager initialized")
         self.create_tables()
@@ -52,6 +53,7 @@ class DatabaseManager:
                 'datetype' UNSIGNED TINYINT NOT NULL default '0',
                 'reminder_time' UNSIGNED SMALLINT NOT NULL default '15',
                 'last_update' DATETIME NOT NULL,
+                'is_alive' BOOLEAN NOT NULL DEFAULT TRUE,
                 FOREIGN KEY(server_id) REFERENCES server(server_id)
             );
             CREATE TABLE IF NOT EXISTS reminded_event(
@@ -164,13 +166,14 @@ class DatabaseManager:
         cursor.close()
         return row
     
-    def update_calendar_timestamp(self, calendar_id):
+    def update_calendar_timestamp(self, calendar_id, variation):
         if calendar_id == None:
             raise Exception("[DatabaseManager.get_calendar] Server_id or Calendar_id missing")
 
         cursor = self.get_cursor()
+        now_variation = datetime.now() + timedelta(seconds=variation)
         try:
-            row = cursor.execute("UPDATE calendar SET last_update=? WHERE ID=?;", (datetime.now(), calendar_id, ))
+            row = cursor.execute("UPDATE calendar SET last_update=? WHERE ID=?;", (now_variation, calendar_id, ))
         except Exception as e:
             cursor.close()
             raise e
@@ -206,7 +209,8 @@ class DatabaseManager:
         # unable to find this channel_id -> delete all calendars with this channel
         cursor = self.get_cursor()
         try:
-            row = cursor.execute("DELETE FROM calendar WHERE channel_id=?;", (channel_id, ))
+            row = cursor.execute("UPDATE calendar SET is_alive=0 WHERE channel_id=?;", (channel_id, ))
+            #row = cursor.execute("DELETE FROM calendar WHERE channel_id=?;", (channel_id, ))
         except Exception as e:
             raise e
         
@@ -218,7 +222,8 @@ class DatabaseManager:
         # unable to find this message_id -> delete calendar
         cursor = self.get_cursor()
         try:
-            row = cursor.execute("DELETE FROM calendar WHERE message_id=?;", (message_id, ))
+            row = cursor.execute("UPDATE calendar SET is_alive=0 WHERE message_id=?;", (message_id, ))
+            #row = cursor.execute("DELETE FROM calendar WHERE message_id=?;", (message_id, ))
         except Exception as e:
             raise e
         
@@ -230,7 +235,8 @@ class DatabaseManager:
         # unable to find server -> delete server and all calendars
         cursor = self.get_cursor()
         try:
-            row2 = cursor.execute("DELETE FROM calendar WHERE server_id=?;", (server_id, ))
+            row2 = cursor.execute("UPDATE calendar SET is_alive=0 WHERE server_id=?;", (server_id, ))
+            #row2 = cursor.execute("DELETE FROM calendar WHERE server_id=?;", (server_id, ))
             row = cursor.execute("DELETE FROM server WHERE server_id=?;", (server_id, ))
         except Exception as e:
             raise e

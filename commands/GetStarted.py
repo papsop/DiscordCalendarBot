@@ -10,7 +10,7 @@ class GetStarted(CommandBase):
         self.activation_string = "getstarted"
         self.sub_commands = "getstarted"
     
-    async def action(self, message):
+    async def action(self, message, server_prefix):
         """
             [prefix]getstarted
         """

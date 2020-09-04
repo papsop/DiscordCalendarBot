@@ -20,7 +20,7 @@ class Calendar(CommandBase):
         self.sub_commands = "add, set"
         self._bot = self._commandsManager._bot
     
-    async def action(self, message):
+    async def action(self, message, server_prefix):
         args = message.content.split(' ')
 
         # check for permissions
@@ -63,31 +63,31 @@ class Calendar(CommandBase):
                 }
         else:
             return "huh?"
-  
 
-        if args[1] == "add":
-            return await self.add_calendar(message, args)
-        elif args[1] == "set":
-            return await self.set_calendar(message, args)
+        if len(args) > 1:
+            if args[1] == "add":
+                return await self.add_calendar(message, args, server_prefix)
+            elif args[1] == "set":
+                return await self.set_calendar(message, args, server_prefix)
 
         return {
             "embed": {
                 "type": "ERROR",
                 "title": "An error has occured",
-                "description": "Unknown sub-command `{0}`!\nUse `[prefix]help calendar` for command usage.".format(args[1])
+                "description": "Unknown sub-command !\nUse `{0}help calendar` for command usage.".format(server_prefix)
             }
         }
 
     # ==================
     #    ADD CALENDAR
     # ==================
-    async def add_calendar(self, message, args):
+    async def add_calendar(self, message, args, server_prefix):
         if len(args) != 4 and len(args) != 5:
             return {
                 "embed": {
                     "type": "ERROR",
                     "title": "An error has occured",
-                    "description": "This command requires 2 or 3 parameters, use `[prefix]help calendar` for command usage."
+                    "description": "This command requires 2 or 3 parameters, use `{0}help calendar` for command usage.".format(server_prefix)
                 }
             }
 
@@ -252,7 +252,7 @@ class Calendar(CommandBase):
     # ==================
     #    SET CALENDAR
     # ==================
-    async def set_calendar(self, message, args):
+    async def set_calendar(self, message, args, server_prefix):
         """
             [prefix]calendar set [id] [name] [value]
         """
@@ -261,7 +261,7 @@ class Calendar(CommandBase):
                 "embed": {
                     "type": "ERROR",
                     "title": "An error has occured",
-                    "description": "This command requires 3 parameters, use `[prefix]help calendar` for command usage."
+                    "description": "This command requires 3 parameters, use `{0}help calendar` for command usage.".format(server_prefix)
                 }
             }    
         # check id
