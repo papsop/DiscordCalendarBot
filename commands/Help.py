@@ -19,9 +19,36 @@ class Help(CommandBase):
         if len(args) < 2:
             return {
                 "embed": {
-                    "type": "ERROR",
-                    "title": "An error has occured",
-                    "description": "Please specify a command after `{0}help` (f.e. `{0}help calendar`)".format(server_prefix)
+                    "type": "INFO",
+                    "title": "Help",
+                    "description": "Please specify a command after `{0}help` for more detailed information".format(server_prefix),
+                    "fields": [
+                        {
+                            "name": "Setup",
+                            "value": "`!setup`",
+                            "inline": False
+                        },
+                        {
+                            "name": "Server information",
+                            "value": "`!serverinfo`",
+                            "inline": False
+                        },
+                        {
+                            "name": "Getstarted guide",
+                            "value": "`{0}getstarted`".format(server_prefix),
+                            "inline": False
+                        },
+                        {
+                            "name": "Calendar add",
+                            "value": "`{0}calendar add`".format(server_prefix),
+                            "inline": False
+                        },
+                        {
+                            "name": "Calendar set",
+                            "value": "`{0}calendar set`".format(server_prefix),
+                            "inline": False
+                        }
+                    ]
                 }
             }
 
