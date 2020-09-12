@@ -93,7 +93,6 @@ class Bot:
                 calendar_old = True
 
             # increment now in case we 'continue' the loop
-            i = i + 1
             message = None
             try:
                 if self._client == None:
@@ -136,7 +135,7 @@ class Bot:
                     continue
                 
                 logger.debug("\t MESSAGE FOUND")
-            
+                i = i + 1
                 # save people to remind
                 users_to_dm = []
                 for reaction in message.reactions:
@@ -170,7 +169,7 @@ class Bot:
                 #
                 # HANDLING REMINDERS
                 # - if it takes too long, we can optimize by putting it into `self._calendarsManager.prepare_calendar_data()`
-                
+                logger.debug("\t CHECKING EVENTS FOR REMINDERS")
                 for day in calendar_events:
                     for event in day:
                         # don't remind all_day events
@@ -208,6 +207,7 @@ class Bot:
                     "start_date": start_date,
                     "end_date": end_date
                 }
+                logger.debug("\t CREATING EMBED")
                 calendar_embed = self._calendarsManager.create_calendar_embed(calendar, events_data)
 
                 Embeds.add_footer(calendar_embed, None) 
@@ -217,7 +217,7 @@ class Bot:
                     await message.edit(content="", embed=calendar_embed)
                     await message.add_reaction("🖐️") # in case admin removed reactions, add it back
             except Exception as e:
-                self.backend_log("periodic_update_calendars{for calendar}", str(e))
+                logger.info("periodic_update_calendars{for calendar}", str(e))
         # log every loop time
         loop_time = (time.time() - start_time)
         logger.info("[{0}] update took {1}s".format(datetime.now(), round(loop_time, 4)))
