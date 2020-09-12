@@ -2,7 +2,6 @@ import discord
 import time
 from datetime import datetime, timedelta
 import pytz
-import copy
 
 from managers.helpers.embeds import Embeds
 
@@ -58,7 +57,7 @@ class CalendarsManager:
                         time_end = event["end_dt"].strftime(time_fmt)
                         day_string += "{0} - {1} -> {2} {3}\n".format(time_start, time_end, event["title"], who_string)
             else:
-                day_string = "-"
+                day_string = "no events found for this day"
             
             embed.add_field(name=day_title, value="```asciidoc\n{0}```".format(day_string), inline=False)
             i +=1
@@ -104,41 +103,18 @@ class CalendarsManager:
                     if loop_day >= event["start_dt"] and loop_day <= event["end_dt"]:
                         calendar[i].append(event)
             else:
-                # dealing with multiday events that aren't all-day
-                # includes events that start before calendar embed
-                if e_start_dt.timetuple().tm_yday is not e_end_dt.timetuple().tm_yday:
-                    # same problem as all-day events, revisit it before new year
-                    # this is so ugly it hurts me
-                    start_day_y = event["start_dt"].timetuple().tm_yday
-                    end_day_y = event["end_dt"].timetuple().tm_yday
-                    for i in range(0, delta_days+1):
-                        loop_day_y = (start_date + timedelta(days=i)).timetuple().tm_yday
-                        event_loop = copy.deepcopy(event)
-                        # start day, time is XX-24
-                        if loop_day_y == start_day_y:
-                            event_loop["end_dt"] = event_loop["end_dt"].replace(hour=23, minute=59)
-                            calendar[i].append(event_loop)
-                        # days between Start and End, excluding them, time is 00-24
-                        if loop_day_y > start_day_y and loop_day_y < end_day_y:
-                            event_loop["start_dt"] = event_loop["start_dt"].replace(hour=00, minute=00)
-                            event_loop["end_dt"] = event_loop["end_dt"].replace(hour=23, minute=59)
-                            calendar[i].append(event_loop)
-                        # end day, time is 00-YY
-                        if loop_day_y == end_day_y:
-                            event_loop["start_dt"] = event_loop["start_dt"].replace(hour=00, minute=00)
-                            calendar[i].append(event_loop)
+                # skip multiple days events
+                # TeamUP returns it as a single event and I don't know
+                # how to nicely format it yet(tm)
+                if e_start_dt < start_date:
+                    continue
+                # +366 handles new year (366 instead of 365 because January 1st is 0) - probably buggy, but fixable later
+                if e_start_dt.timetuple().tm_yday < start_date.timetuple().tm_yday:
+                    index = (e_start_dt.timetuple().tm_yday + 366) - start_date.timetuple().tm_yday
                 else:
-                    # skips events that have start before calendar embed
-                    if e_start_dt < start_date:
-                        continue
+                    index = e_start_dt.timetuple().tm_yday - start_date.timetuple().tm_yday
 
-                    # +366 handles new year (366 instead of 365 because January 1st is 0) - probably buggy, but fixable later
-                    if e_start_dt.timetuple().tm_yday < start_date.timetuple().tm_yday:
-                        index = (e_start_dt.timetuple().tm_yday + 366) - start_date.timetuple().tm_yday
-                    else:
-                        index = e_start_dt.timetuple().tm_yday - start_date.timetuple().tm_yday
-
-                    calendar[index].append(event)
+                calendar[index].append(event)
 
         return calendar
 
