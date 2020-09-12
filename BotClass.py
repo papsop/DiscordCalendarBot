@@ -156,7 +156,7 @@ class Bot:
                     calendar_events = self._calendarsManager.prepare_calendar_data(teamup_events, start_date, end_date, calendar["timezone"])
                 else:
                     # Can't fetch events from teamup, skip this calendar (maybe they deleted key)
-                    self.backend_log("periodic_update_calendars{events }", "can't fetch teamup data")
+                    logger.info("[{0}] periodic_update_calendars(reminding users) - can't fetch teamup data".format(datetime.now()))
                     continue
 
                 
@@ -182,10 +182,10 @@ class Bot:
                             reminded_event = self._databaseManager.get_reminded_event(event["id"], event["version"])
                             # skip reminded
                             if reminded_event != None:
-                                return
+                                continue
      
                             for user in users_to_dm:
-                                logger.debug("\t\t SENDING DM".format(users_to_dm))
+                                logger.debug("\t\t SENDING DM - {0}".format(user.id))
                                 await asyncio.sleep(0.3)
                                 try:
                                     dm_channel = user.dm_channel
@@ -197,7 +197,7 @@ class Bot:
                                     reminder_embed = Embeds.create_reminder_embed(event)
                                     await dm_channel.send(content="", embed=reminder_embed)
                                 except Exception as e:
-                                    self.backend_log("periodic_update_calendars{reminding users}", str(e))
+                                    logger.info("[{0}] periodic_update_calendars(reminding users) - {1}".format(datetime.now(), str(e)))
 
                             # save that we reminded this one        
                             self._databaseManager.add_reminded_event(event["id"], event["version"])
@@ -217,7 +217,7 @@ class Bot:
                     await message.edit(content="", embed=calendar_embed)
                     await message.add_reaction("🖐️") # in case admin removed reactions, add it back
             except Exception as e:
-                logger.info("periodic_update_calendars{for calendar}", str(e))
+                logger.info("[{0}] periodic_update_calendars(for calendar) - {1}".format(datetime.now(), str(e)))
         # log every loop time
         loop_time = (time.time() - start_time)
         logger.info("[{0}] update took {1}s".format(datetime.now(), round(loop_time, 4)))
