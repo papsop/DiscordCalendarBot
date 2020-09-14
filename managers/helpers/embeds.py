@@ -60,13 +60,15 @@ class Embeds(object):
     
     @staticmethod
     def create_reminder_embed(event):
-        calendar = event["calendar_data"] 
+        calendar = event["calendar_data"]
         embed = discord.Embed()
         embed.timestamp = datetime.utcnow()
         embed.color = Embeds.color_info
         embed.title = "Hey **{0.name}**!".format(event["user"])
         embed.description = "This is a reminder from calendar in channel <#{0[channel_id]}>".format(calendar)
-
+        multiday = False
+        if "multiday_event" in event:
+            multiday = True
         # date + time stuff
         if calendar["datetype"] == 0:
             date_fmt = "%d.%m.%Y"
@@ -78,11 +80,18 @@ class Embeds(object):
         else:
             time_fmt = "%I:%M%p"
 
+        # if reminding a shard of a multi_day event
+        if multiday:
+            event = event["multiday_event"]
+
         time_start = event["start_dt"].strftime(time_fmt)
         time_end = event["end_dt"].strftime(time_fmt)
         day_string = "```asciidoc\n{0} - {1} -> {2}```".format(time_start, time_end, event["title"])  # to keep it consistent
 
-        embed.add_field(name="{0} ({1})".format(event["title"], event["start_dt"].strftime(date_fmt)), value=day_string)
+        if multiday:
+            embed.add_field(name="{0} ({1} - {2})".format(event["title"], event["start_dt"].strftime(date_fmt), event["end_dt"].strftime(date_fmt)), value=day_string)
+        else:
+            embed.add_field(name="{0} ({1})".format(event["title"], event["start_dt"].strftime(date_fmt)), value=day_string)
 
         if event["who"] != "":
             embed.add_field(name="Who", value=event["who"], inline=False)

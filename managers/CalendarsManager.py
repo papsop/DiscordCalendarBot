@@ -23,7 +23,6 @@ class CalendarsManager:
         embed = discord.Embed()
         # default settings
         embed.color = Embeds.color_info
-        embed.set_footer(text="nice")
         embed.timestamp = datetime.utcnow()
         embed.title = "Calendar".format(calendar_data)
 
@@ -114,17 +113,21 @@ class CalendarsManager:
                     for i in range(0, delta_days+1):
                         loop_day_y = (start_date + timedelta(days=i)).timetuple().tm_yday
                         event_loop = copy.deepcopy(event)
+                        event_loop["multiday_event"] = event
+                        # off-set those newly created events
+                        event_loop["start_dt"] = event_loop["start_dt"] + timedelta(days=i)
+                        event_loop["end_dt"] = event_loop["end_dt"] + timedelta(days=i)
                         # start day, time is XX-24
                         if loop_day_y == start_day_y:
                             event_loop["end_dt"] = event_loop["end_dt"].replace(hour=23, minute=59)
                             calendar[i].append(event_loop)
                         # days between Start and End, excluding them, time is 00-24
-                        if loop_day_y > start_day_y and loop_day_y < end_day_y:
+                        elif loop_day_y > start_day_y and loop_day_y < end_day_y:
                             event_loop["start_dt"] = event_loop["start_dt"].replace(hour=00, minute=00)
                             event_loop["end_dt"] = event_loop["end_dt"].replace(hour=23, minute=59)
                             calendar[i].append(event_loop)
                         # end day, time is 00-YY
-                        if loop_day_y == end_day_y:
+                        elif loop_day_y == end_day_y:
                             event_loop["start_dt"] = event_loop["start_dt"].replace(hour=00, minute=00)
                             calendar[i].append(event_loop)
                 else:
