@@ -83,6 +83,8 @@ class CalendarsManager:
         calendar_tz = pytz.timezone(timezone)
         delta_days = (end_date - start_date).days
         calendar = [[] for day in range(0, delta_days+1)]
+        start_date_no_tz = start_date.replace(tzinfo=None)
+        start_date = start_date.replace(hour=00, minute=00, second=00) # make it midnight today instead of CURRENT TIME
         for event in events:
             if event["all_day"]:
                 e_start_dt = datetime.fromisoformat(event["start_dt"])
@@ -93,7 +95,7 @@ class CalendarsManager:
 
             event["start_dt"] = e_start_dt
             event["end_dt"] = e_end_dt
-            start_date_no_tz = start_date.replace(tzinfo=None)
+            
 
             # All day events and multiple days events are tricky
             if event["all_day"]:

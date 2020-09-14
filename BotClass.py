@@ -177,11 +177,9 @@ class Bot:
                             continue
                         
                         event_delta_minutes = (event["start_dt"] - calendar_now).total_seconds() / 60.0
-                        logger.debug("[{0}] event_delta_minutes: {1}".format(event["title"], event_delta_minutes))
                         if event_delta_minutes <= calendar["reminder_time"]:
                             # check if this event has already been reminded
                             reminded_event = self._databaseManager.get_reminded_event(event["id"], event["version"])
-                            logger.debug("[{0}] reminded_event: {1}".format(event["title"], reminded_event))
                             # skip reminded
                             if reminded_event != None:
                                 continue
