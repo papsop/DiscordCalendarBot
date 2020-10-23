@@ -67,8 +67,9 @@ class Bot:
         # - if channel unreachable -> delete all calendars in this channel
 
         try:
-            time_7min_back = (datetime.now() - timedelta(minutes=7))
-            calendars = cursor.execute("SELECT * FROM calendar WHERE last_update <= ? AND is_alive=1;", (time_7min_back, )).fetchall()
+            variation_min = random.randint(8, 10)
+            time_min_back = (datetime.now() - timedelta(minutes=variation_min))
+            calendars = cursor.execute("SELECT * FROM calendar WHERE last_update <= ? AND is_alive=1;", (time_min_back, )).fetchall()
         except Exception as e:
             cursor.close()
             self.backend_log("periodic_update_calendars", str(e))
@@ -163,7 +164,7 @@ class Bot:
                 # update timestamp for calendar
                 # Let's add some random variation to spread number of calendars updating every loop
                 # time will tell if it helped
-                variation = random.randint(0, 90)
+                variation = random.randint(0, 360)
                 self._databaseManager.update_calendar_timestamp(calendar["ID"], variation)
 
                 #
