@@ -81,9 +81,9 @@ class Bot:
         for calendar in calendars:
             # lets wait 15 seconds after every 10 calendars because of the f*cking rate limit
             # losing my mind pt. 4
-            if i > 0 and i % 10 == 0:
-                logger.debug('[{0}] ===== WAITING FOR 15s ====='.format(datetime.now()))
-                await asyncio.sleep(15)
+            if i > 0 and i % 15 == 0:
+                logger.debug('[{0}] ===== WAITING FOR 35s ====='.format(datetime.now()))
+                await asyncio.sleep(35)
 
             logger.debug("[{0}] [{1}] CALENDAR:SERVERID: {2}:{3}".format(datetime.now(), i, calendar["ID"], calendar["server_id"]))
             # Let's check if this calendar is a boomer
