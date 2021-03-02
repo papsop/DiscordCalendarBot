@@ -209,7 +209,7 @@ class DatabaseManager:
         # unable to find this channel_id -> delete all calendars with this channel
         cursor = self.get_cursor()
         try:
-            row = cursor.execute("UPDATE calendar SET is_alive=0 WHERE channel_id=?;", (channel_id, ))
+            row = cursor.execute("UPDATE calendar SET is_alive='FALSE' WHERE channel_id=?;", (channel_id, ))
             #row = cursor.execute("DELETE FROM calendar WHERE channel_id=?;", (channel_id, ))
         except Exception as e:
             raise e
@@ -222,7 +222,7 @@ class DatabaseManager:
         # unable to find this message_id -> delete calendar
         cursor = self.get_cursor()
         try:
-            row = cursor.execute("UPDATE calendar SET is_alive=0 WHERE message_id=?;", (message_id, ))
+            row = cursor.execute("UPDATE calendar SET is_alive='FALSE' WHERE message_id=?;", (message_id, ))
             #row = cursor.execute("DELETE FROM calendar WHERE message_id=?;", (message_id, ))
         except Exception as e:
             raise e
@@ -235,7 +235,7 @@ class DatabaseManager:
         # unable to find server -> delete server and all calendars
         cursor = self.get_cursor()
         try:
-            row2 = cursor.execute("UPDATE calendar SET is_alive=0 WHERE server_id=?;", (server_id, ))
+            row2 = cursor.execute("UPDATE calendar SET is_alive='FALSE' WHERE server_id=?;", (server_id, ))
             #row2 = cursor.execute("DELETE FROM calendar WHERE server_id=?;", (server_id, ))
             row = cursor.execute("DELETE FROM server WHERE server_id=?;", (server_id, ))
         except Exception as e:

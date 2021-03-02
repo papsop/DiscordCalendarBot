@@ -69,7 +69,7 @@ class Bot:
         try:
             variation_min = random.randint(8, 10)
             time_min_back = (datetime.now() - timedelta(minutes=variation_min))
-            calendars = cursor.execute("SELECT * FROM calendar WHERE last_update <= ? AND is_alive=1;", (time_min_back, )).fetchall()
+            calendars = cursor.execute("SELECT * FROM calendar WHERE last_update <= ? AND is_alive='TRUE';", (time_min_back, )).fetchall()
         except Exception as e:
             cursor.close()
             self.backend_log("periodic_update_calendars", str(e))
