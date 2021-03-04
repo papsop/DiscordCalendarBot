@@ -87,11 +87,14 @@ class Bot:
 
             logger.debug("[{0}] [{1}] CALENDAR:SERVERID: {2}:{3}".format(datetime.now(), i, calendar["ID"], calendar["server_id"]))
             # Let's check if this calendar is a boomer
-            lup_dt = datetime.strptime(calendar["last_update"], '%Y-%m-%d %H:%M:%S.%f')
-            last_update_hours = (datetime.now() - lup_dt).total_seconds() / 60.0 / 60.0
-            calendar_old = False
-            if last_update_hours >= 48:
-                calendar_old = True
+            try:
+                lup_dt = datetime.strptime(calendar["last_update"], '%Y-%m-%d %H:%M:%S.%f')
+                last_update_hours = (datetime.now() - lup_dt).total_seconds() / 60.0 / 60.0
+                calendar_old = False
+                if last_update_hours >= 48:
+                    calendar_old = True
+            except Exception as e: # mark it false if you can't parse date
+                calendar_old = False
 
             # increment now in case we 'continue' the loop
             message = None
