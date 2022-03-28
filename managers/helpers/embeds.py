@@ -6,7 +6,8 @@ import re
 def cleanhtml(raw_html):
   cleanr = re.compile('<.*?>')
   cleantext = re.sub(cleanr, '', raw_html)
-  return cleantext
+  # adding empty white space so the value isn't empty
+  return '\u200b' + cleantext 
 
 class Embeds(object):
     
