@@ -1,6 +1,9 @@
 # DiscordCalendarBot
 ---
+**!! The bot doesn't support commands, so it's basically only usable if already it's set-up on your server**
+
 **No new features planned, only serious bug fixes. Accepting merge requests if you want to add something.**
+
 - free hosted version will be supported until my raspberry pi dies
 
 
